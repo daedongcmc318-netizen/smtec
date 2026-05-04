@@ -6,6 +6,136 @@
 <title>공지사항 | SM TECH</title>
 <link rel="icon" href="../img/logo.png">
 <link rel="stylesheet" href="../css/style.css">
+<style>
+  .board-toolbar{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:14px; flex-wrap:wrap; margin-bottom:18px;
+  }
+  .board-search{
+    position:relative; flex:1; min-width:240px; max-width:380px;
+  }
+  .board-search input{
+    width:100%; padding:11px 14px 11px 38px;
+    border:1px solid var(--border-soft); border-radius:8px;
+    background:#fff; font-size:14px; color:var(--text-1);
+    transition:border-color .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .board-search input:focus{
+    outline:none; border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(14,165,233,0.12);
+  }
+  .board-search svg{
+    position:absolute; left:12px; top:50%; transform:translateY(-50%);
+    width:16px; height:16px; color:var(--text-3);
+  }
+  .board-filter{
+    display:flex; gap:6px; flex-wrap:wrap;
+  }
+  .board-filter button{
+    padding:8px 14px; font-size:12px; font-weight:600;
+    border:1px solid var(--border-soft); border-radius:999px;
+    background:#fff; color:var(--text-2);
+    font-family:'JetBrains Mono',monospace; letter-spacing:0.06em;
+    cursor:pointer; transition:all .2s var(--ease);
+  }
+  .board-filter button:hover{ border-color:var(--accent); color:var(--accent-2); }
+  .board-filter button.on{
+    background:var(--accent); border-color:var(--accent); color:#fff;
+    box-shadow:0 4px 12px rgba(14,165,233,0.25);
+  }
+
+  .notice-table td.title-cell{ cursor:pointer; }
+  .notice-table td.title-cell .t-link{
+    color:var(--text-1); font-weight:500; transition:color .15s;
+  }
+  .notice-table tbody tr:hover .t-link{ color:var(--accent-2); }
+  .notice-table .empty-cell{
+    padding:60px 20px !important; text-align:center; color:var(--text-3);
+  }
+  .notice-table .empty-cell .em-icon{
+    width:48px; height:48px; margin:0 auto 14px;
+    color:var(--text-3); opacity:0.5;
+  }
+
+  .pager{ display:flex; justify-content:center; gap:6px; margin-top:36px; flex-wrap:wrap; }
+  .pager button{
+    min-width:40px; padding:9px 13px; font-size:13px; font-weight:600;
+    border:1px solid var(--border-soft); border-radius:6px;
+    background:#fff; color:var(--text-1);
+    cursor:pointer; transition:all .2s var(--ease);
+  }
+  .pager button:hover:not(:disabled){ border-color:var(--accent); color:var(--accent-2); }
+  .pager button.on{ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .pager button:disabled{ opacity:0.4; cursor:not-allowed; }
+
+  /* Detail modal */
+  .nt-overlay{
+    display:none; position:fixed; inset:0; z-index:200;
+    background:rgba(11,19,36,0.6);
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .nt-overlay.show{ display:flex; }
+  .nt-modal{
+    background:#fff; border-radius:14px; max-width:680px; width:100%;
+    max-height:88vh; overflow:auto; box-shadow:var(--shadow-lg);
+    animation:ntPop .25s var(--ease);
+  }
+  @keyframes ntPop{
+    from{ opacity:0; transform:translateY(8px) scale(0.98); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  .nt-head{
+    padding:24px 28px 18px;
+    border-bottom:1px solid var(--border-soft);
+    position:sticky; top:0; background:#fff; z-index:1;
+  }
+  .nt-meta{
+    display:flex; gap:10px; align-items:center; font-size:12px;
+    color:var(--text-3); font-family:'JetBrains Mono',monospace;
+    letter-spacing:0.06em; margin-bottom:10px;
+  }
+  .nt-meta .nt-no{ color:var(--accent-2); font-weight:600; }
+  .nt-head h2{
+    font-size:20px; font-weight:700; color:var(--text-0); line-height:1.4;
+    word-break:keep-all;
+  }
+  .nt-body{
+    padding:26px 28px 28px;
+    font-size:15px; line-height:1.8; color:var(--text-1);
+    white-space:pre-wrap; word-break:keep-all;
+  }
+  .nt-body.empty{ color:var(--text-3); font-style:italic; }
+  .nt-foot{
+    padding:14px 28px 22px; display:flex; justify-content:space-between;
+    gap:10px; align-items:center; flex-wrap:wrap;
+  }
+  .nt-nav{ display:flex; gap:6px; }
+  .nt-nav button{
+    padding:8px 14px; font-size:13px; font-weight:600;
+    border:1px solid var(--border-soft); border-radius:6px;
+    background:#fff; color:var(--text-1);
+    cursor:pointer; transition:all .2s var(--ease);
+  }
+  .nt-nav button:hover:not(:disabled){ border-color:var(--accent); color:var(--accent-2); }
+  .nt-nav button:disabled{ opacity:0.35; cursor:not-allowed; }
+  .nt-close{
+    padding:8px 16px; font-size:13px; font-weight:600;
+    background:var(--accent); color:#fff; border-radius:6px;
+    cursor:pointer; transition:background .2s;
+  }
+  .nt-close:hover{ background:var(--accent-2); }
+
+  @media (max-width:768px){
+    .notice-table th:nth-child(2),
+    .notice-table td:nth-child(2),
+    .notice-table th:nth-child(5),
+    .notice-table td:nth-child(5){ display:none; }
+    .notice-table th, .notice-table td{ padding:14px 8px; font-size:13px; }
+    .nt-head{ padding:20px 20px 14px; }
+    .nt-body{ padding:20px; font-size:14px; }
+    .nt-foot{ padding:12px 20px 18px; }
+  }
+</style>
 </head>
 <body>
 <div class="grid-bg"></div>
@@ -37,7 +167,21 @@
 
 <section class="section">
   <div class="container">
-    <table class="notice-table reveal">
+    <div class="board-toolbar">
+      <div class="board-filter" id="boardFilter">
+        <button data-cat="ALL" class="on">ALL</button>
+        <button data-cat="NOTICE">NOTICE</button>
+        <button data-cat="NEWS">NEWS</button>
+        <button data-cat="EVENT">EVENT</button>
+        <button data-cat="HR">HR</button>
+      </div>
+      <div class="board-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="boardSearch" placeholder="제목으로 검색…" autocomplete="off">
+      </div>
+    </div>
+
+    <table class="notice-table">
       <thead>
         <tr>
           <th style="width:80px;">No.</th>
@@ -47,59 +191,34 @@
           <th style="width:100px;">VIEW</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td>008</td><td><span class="cat">NEWS</span></td>
-          <td>AS9100 Rev.D 재인증 획득 안내</td>
-          <td>2026.04.15</td><td>1,281</td>
-        </tr>
-        <tr>
-          <td>007</td><td><span class="cat">EVENT</span></td>
-          <td>DX KOREA 2026 방위산업 전시회 참가 안내</td>
-          <td>2026.03.22</td><td>892</td>
-        </tr>
-        <tr>
-          <td>006</td><td><span class="cat">HR</span></td>
-          <td>2026년 상반기 생산기술/R&amp;D 경력직 채용 공고</td>
-          <td>2026.02.10</td><td>2,134</td>
-        </tr>
-        <tr>
-          <td>005</td><td><span class="cat">NEWS</span></td>
-          <td>5축 일체형 CNC 머시닝 센터 2대 증설 완료</td>
-          <td>2026.01.28</td><td>654</td>
-        </tr>
-        <tr>
-          <td>004</td><td><span class="cat">AWARD</span></td>
-          <td>경기도 우수 기술기업 대상 수상</td>
-          <td>2025.12.05</td><td>1,017</td>
-        </tr>
-        <tr>
-          <td>003</td><td><span class="cat">NEWS</span></td>
-          <td>차세대 중형 위성 광학 구조부 수주 소식</td>
-          <td>2025.11.18</td><td>1,448</td>
-        </tr>
-        <tr>
-          <td>002</td><td><span class="cat">NOTICE</span></td>
-          <td>2025년 추석 연휴 업무 일정 안내</td>
-          <td>2025.09.24</td><td>420</td>
-        </tr>
-        <tr>
-          <td>001</td><td><span class="cat">NOTICE</span></td>
-          <td>SM TECH 공식 홈페이지 리뉴얼 안내</td>
-          <td>2025.08.01</td><td>2,590</td>
-        </tr>
-      </tbody>
+      <tbody id="boardBody"></tbody>
     </table>
 
-    <div class="mt-48" style="display:flex;justify-content:center;gap:8px;">
-      <button class="btn btn-outline" style="padding:10px 14px;">‹</button>
-      <button class="btn btn-primary" style="padding:10px 16px;">1</button>
-      <button class="btn btn-outline" style="padding:10px 16px;">2</button>
-      <button class="btn btn-outline" style="padding:10px 16px;">3</button>
-      <button class="btn btn-outline" style="padding:10px 14px;">›</button>
-    </div>
+    <div class="pager" id="boardPager"></div>
   </div>
 </section>
+
+<!-- Detail modal -->
+<div class="nt-overlay" id="ntOverlay" role="dialog" aria-modal="true" aria-labelledby="ntTitle">
+  <div class="nt-modal">
+    <div class="nt-head">
+      <div class="nt-meta">
+        <span class="nt-no" id="ntNo"></span>
+        <span class="cat" id="ntCat"></span>
+        <span id="ntDate"></span>
+      </div>
+      <h2 id="ntTitle"></h2>
+    </div>
+    <div class="nt-body" id="ntBody"></div>
+    <div class="nt-foot">
+      <div class="nt-nav">
+        <button id="ntPrev" type="button">‹ 이전</button>
+        <button id="ntNext" type="button">다음 ›</button>
+      </div>
+      <button class="nt-close" id="ntClose" type="button">닫기</button>
+    </div>
+  </div>
+</div>
 
 <footer class="footer">
   <div class="footer-inner">
@@ -110,6 +229,213 @@
   </div>
   <div class="footer-bottom"><span>© <span data-year></span> SM TECH Co., Ltd.</span><a href="../admin/login.html" class="admin-link">Admin</a></div>
 </footer>
+
 <script src="../js/main.js"></script>
+<script>
+/* ============================================================
+   공지사항 게시판 — admin 대시보드와 동일한 localStorage 키 사용
+   key: smtec_notices_demo
+   shape: [{ id, cat, title, body, date }]
+   ============================================================ */
+(function(){
+  'use strict';
+
+  const NK = 'smtec_notices_demo';
+  const VK = 'smtec_notices_views';
+  const PER_PAGE = 10;
+
+  function escapeHTML(s){
+    return String(s ?? '').replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+  function safeJSON(key, fallback){
+    try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+    catch(e){ return fallback; }
+  }
+  function loadNotices(){ return safeJSON(NK, []); }
+  function loadViews(){ return safeJSON(VK, {}); }
+  function saveViews(v){ localStorage.setItem(VK, JSON.stringify(v)); }
+
+  // -------- State --------
+  let state = {
+    cat: 'ALL',
+    q: '',
+    page: 1,
+    detailId: null,
+  };
+
+  const tbody = document.getElementById('boardBody');
+  const pager = document.getElementById('boardPager');
+  const filter = document.getElementById('boardFilter');
+  const search = document.getElementById('boardSearch');
+
+  // -------- Filtered list (newest first) --------
+  function filteredList(){
+    const all = loadNotices().slice().sort((a,b) => b.id - a.id);
+    return all.filter(n => {
+      if (state.cat !== 'ALL' && n.cat !== state.cat) return false;
+      if (state.q && !String(n.title||'').toLowerCase().includes(state.q.toLowerCase())) return false;
+      return true;
+    });
+  }
+
+  // -------- Render list --------
+  function render(){
+    const list = filteredList();
+    const views = loadViews();
+
+    if (list.length === 0) {
+      tbody.innerHTML = `
+        <tr><td colspan="5" class="empty-cell">
+          <svg class="em-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <div>${state.q || state.cat !== 'ALL' ? '검색 결과가 없습니다.' : '등록된 공지가 없습니다.'}</div>
+        </td></tr>`;
+      pager.innerHTML = '';
+      return;
+    }
+
+    const totalPages = Math.max(1, Math.ceil(list.length / PER_PAGE));
+    if (state.page > totalPages) state.page = totalPages;
+    const start = (state.page - 1) * PER_PAGE;
+    const slice = list.slice(start, start + PER_PAGE);
+
+    tbody.innerHTML = slice.map(n => {
+      const no = String(n.id).padStart(3, '0');
+      const v = views[n.id] || 0;
+      return `
+        <tr>
+          <td>${no}</td>
+          <td><span class="cat">${escapeHTML(n.cat||'NOTICE')}</span></td>
+          <td class="title-cell" data-id="${n.id}"><span class="t-link">${escapeHTML(n.title||'')}</span></td>
+          <td>${escapeHTML(n.date||'')}</td>
+          <td>${v.toLocaleString()}</td>
+        </tr>`;
+    }).join('');
+
+    // pager
+    let pHTML = `<button data-pg="prev" ${state.page===1?'disabled':''}>‹</button>`;
+    const win = 5;
+    let from = Math.max(1, state.page - Math.floor(win/2));
+    let to = Math.min(totalPages, from + win - 1);
+    from = Math.max(1, to - win + 1);
+    for (let i = from; i <= to; i++) {
+      pHTML += `<button data-pg="${i}" class="${i===state.page?'on':''}">${i}</button>`;
+    }
+    pHTML += `<button data-pg="next" ${state.page===totalPages?'disabled':''}>›</button>`;
+    pager.innerHTML = pHTML;
+  }
+
+  // -------- Detail --------
+  const overlay = document.getElementById('ntOverlay');
+  const ntNo = document.getElementById('ntNo');
+  const ntCat = document.getElementById('ntCat');
+  const ntDate = document.getElementById('ntDate');
+  const ntTitle = document.getElementById('ntTitle');
+  const ntBody = document.getElementById('ntBody');
+  const ntPrev = document.getElementById('ntPrev');
+  const ntNext = document.getElementById('ntNext');
+
+  function openDetail(id){
+    const list = filteredList();
+    const idx = list.findIndex(n => n.id === id);
+    if (idx < 0) return;
+    const n = list[idx];
+
+    // increment view count
+    const views = loadViews();
+    views[n.id] = (views[n.id] || 0) + 1;
+    saveViews(views);
+
+    state.detailId = id;
+    ntNo.textContent = '#' + String(n.id).padStart(3, '0');
+    ntCat.textContent = n.cat || 'NOTICE';
+    ntDate.textContent = n.date || '';
+    ntTitle.textContent = n.title || '';
+    if (n.body && n.body.trim()) {
+      ntBody.textContent = n.body;
+      ntBody.classList.remove('empty');
+    } else {
+      ntBody.textContent = '본문 내용이 없습니다.';
+      ntBody.classList.add('empty');
+    }
+    ntPrev.disabled = idx === list.length - 1;
+    ntNext.disabled = idx === 0;
+    overlay.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeDetail(){
+    overlay.classList.remove('show');
+    document.body.style.overflow = '';
+    state.detailId = null;
+    render();
+  }
+  function navDetail(dir){
+    const list = filteredList();
+    const idx = list.findIndex(n => n.id === state.detailId);
+    if (idx < 0) return;
+    const next = idx + (dir === 'next' ? -1 : 1);
+    if (next < 0 || next >= list.length) return;
+    openDetail(list[next].id);
+  }
+
+  // -------- Event wiring --------
+  tbody.addEventListener('click', e => {
+    const cell = e.target.closest('.title-cell');
+    if (cell) openDetail(+cell.dataset.id);
+  });
+
+  pager.addEventListener('click', e => {
+    const b = e.target.closest('button[data-pg]');
+    if (!b || b.disabled) return;
+    const v = b.dataset.pg;
+    const totalPages = Math.max(1, Math.ceil(filteredList().length / PER_PAGE));
+    if (v === 'prev') state.page = Math.max(1, state.page - 1);
+    else if (v === 'next') state.page = Math.min(totalPages, state.page + 1);
+    else state.page = +v;
+    render();
+    window.scrollTo({ top: document.querySelector('.notice-table').offsetTop - 80, behavior:'smooth' });
+  });
+
+  filter.addEventListener('click', e => {
+    const b = e.target.closest('button[data-cat]');
+    if (!b) return;
+    filter.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    state.cat = b.dataset.cat;
+    state.page = 1;
+    render();
+  });
+
+  let searchTimer = null;
+  search.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => {
+      state.q = search.value.trim();
+      state.page = 1;
+      render();
+    }, 200);
+  });
+
+  document.getElementById('ntClose').addEventListener('click', closeDetail);
+  ntPrev.addEventListener('click', () => navDetail('prev'));
+  ntNext.addEventListener('click', () => navDetail('next'));
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeDetail(); });
+  document.addEventListener('keydown', e => {
+    if (!overlay.classList.contains('show')) return;
+    if (e.key === 'Escape') closeDetail();
+    else if (e.key === 'ArrowLeft') navDetail('prev');
+    else if (e.key === 'ArrowRight') navDetail('next');
+  });
+
+  // Re-render when admin updates notices in another tab
+  window.addEventListener('storage', e => {
+    if (e.key === NK) render();
+  });
+
+  render();
+})();
+</script>
 </body>
 </html>
