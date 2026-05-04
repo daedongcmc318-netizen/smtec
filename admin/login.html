@@ -50,75 +50,82 @@
 
   <div class="login-form">
     <div class="form-field">
-      <label>아이디 (ID)</label>
-      <input type="text" id="userId" name="userId" required autocomplete="username" maxlength="40">
+      <label>이메일 (EMAIL)</label>
+      <input type="email" id="userEmail" name="email" required autocomplete="username" maxlength="80" placeholder="admin@sm-tec.org">
     </div>
     <div class="form-field">
       <label>비밀번호 (PASSWORD)</label>
       <input type="password" id="userPw" name="userPw" required autocomplete="current-password" maxlength="80">
     </div>
     <div class="err" id="errMsg"></div>
-    <button type="submit" class="btn btn-primary">
+    <button type="submit" class="btn btn-primary" id="submitBtn">
       로그인 <span class="arrow">→</span>
     </button>
   </div>
 
   <div class="login-warn">
-    <strong>⚠ 보안 안내</strong>
-    이 로그인은 <b>UI 데모용</b>입니다. 클라이언트 측 인증은 안전하지 않으므로 실제 운영 시 반드시 서버 측 인증(HTTPS · 비밀번호 해싱 · 세션 쿠키 · CSRF 토큰 등)을 도입해 주세요.
+    <strong>🔒 Firebase Authentication</strong>
+    이 로그인은 Firebase Auth로 검증되며, 관리자만 접근할 수 있습니다. 비밀번호 분실 시 Firebase 콘솔의 Authentication에서 재설정해 주세요.
   </div>
   <a href="../index.html" class="login-back">← 홈페이지로 돌아가기</a>
 </form>
 
-<script>
-/* ============================================================
-   ⚠ 보안 경고 (READ ME)
-   ------------------------------------------------------------
-   이 파일은 UI 데모입니다. 실제 운영에서는 절대 이 방식으로
-   인증을 구현하지 마세요. 클라이언트 JS의 비밀번호는 누구나
-   소스를 열어 볼 수 있으므로 의미 없는 보호입니다.
+<script type="module">
+import { auth } from '../js/firebase.js';
+import {
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  setPersistence,
+  browserSessionPersistence
+} from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
 
-   실제 보안을 위해 필요한 사항:
-   1. 백엔드 서버 (Node.js · Python · PHP 등)
-   2. 비밀번호 해시 저장 (bcrypt / argon2)
-   3. HTTPS 전용 + Secure / HttpOnly 세션 쿠키
-   4. CSRF 토큰 / SameSite=Strict 쿠키
-   5. Rate-limiting (무차별 대입 차단)
-   6. 2FA / OTP (선택)
-   ============================================================ */
-(function () {
-  // ★ 실제 운영 코드에서는 사용 금지. 데모 전용.
-  //    아이디 / 비밀번호는 임의로 변경 가능하지만 어차피 안전하지 않음.
-  const DEMO_USER = 'admin';
-  const DEMO_PASS = 'smtec2026';   // ← UI 데모용 임시 자격증명
+const form = document.getElementById('loginForm');
+const errBox = document.getElementById('errMsg');
+const submitBtn = document.getElementById('submitBtn');
 
-  const form = document.getElementById('loginForm');
-  const errBox = document.getElementById('errMsg');
+// 이미 로그인 상태면 바로 대시보드로
+onAuthStateChanged(auth, (user) => {
+  if (user) window.location.replace('dashboard.html');
+});
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    errBox.classList.remove('show');
+// 탭 닫으면 로그아웃되도록 sessionStorage 영속성 사용
+setPersistence(auth, browserSessionPersistence).catch(() => {});
 
-    const id = document.getElementById('userId').value.trim();
-    const pw = document.getElementById('userPw').value;
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errBox.classList.remove('show');
 
-    if (!id || !pw) {
-      errBox.textContent = '아이디와 비밀번호를 모두 입력해 주세요.';
-      errBox.classList.add('show');
-      return;
+  const email = document.getElementById('userEmail').value.trim();
+  const pw = document.getElementById('userPw').value;
+
+  if (!email || !pw) {
+    errBox.textContent = '이메일과 비밀번호를 모두 입력해 주세요.';
+    errBox.classList.add('show');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  const orig = submitBtn.innerHTML;
+  submitBtn.innerHTML = '로그인 중...';
+
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+    window.location.href = 'dashboard.html';
+  } catch (err) {
+    let msg = '로그인에 실패했습니다.';
+    if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+      msg = '이메일 또는 비밀번호가 올바르지 않습니다.';
+    } else if (err.code === 'auth/too-many-requests') {
+      msg = '시도가 너무 많아 일시적으로 차단되었습니다. 잠시 후 다시 시도해 주세요.';
+    } else if (err.code === 'auth/network-request-failed') {
+      msg = '네트워크 오류입니다. 연결을 확인해 주세요.';
     }
-
-    if (id === DEMO_USER && pw === DEMO_PASS) {
-      // sessionStorage: 탭이 닫히면 초기화 — localStorage 보다 안전
-      sessionStorage.setItem('smtec_admin_demo', '1');
-      sessionStorage.setItem('smtec_admin_at', String(Date.now()));
-      window.location.href = 'dashboard.html';
-    } else {
-      errBox.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
-      errBox.classList.add('show');
-    }
-  });
-})();
+    errBox.textContent = msg;
+    errBox.classList.add('show');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = orig;
+  }
+});
 </script>
 </body>
 </html>

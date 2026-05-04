@@ -164,10 +164,10 @@
       <div class="meta">[ <span style="color:var(--accent);">●</span> ADMIN ] <span data-clock></span></div>
     </div>
 
-    <div class="sec-warn">
-      <strong>⚠ 보안 안내 — 이 화면은 UI 데모입니다.</strong>
-      현재 데이터는 브라우저 <code>sessionStorage / localStorage</code>에만 저장되며 다른 사용자에게 보이지 않습니다.
-      실제 공지사항·문의 처리에는 백엔드 서버(데이터베이스 + 인증 + 권한 검증 + CSRF 방어)가 필수입니다.
+    <div class="sec-warn" style="background:linear-gradient(135deg,rgba(14,165,233,0.06),rgba(124,58,237,0.04));border-color:rgba(14,165,233,0.3);color:#0c4a6e;">
+      <strong>🔒 Firebase Firestore + Auth 연결됨</strong>
+      공지사항 · 고객 문의는 Firestore에 저장되며, Security Rules로 권한이 강제됩니다.
+      비공개 정보는 Firebase 콘솔의 Authentication / Firestore에서 직접 관리하세요.
     </div>
 
     <!-- ===== DASHBOARD TAB ===== -->
@@ -285,59 +285,75 @@
   </div>
 </div>
 
-<script>
+<script type="module">
 /* ============================================================
-   ⚠ 데모 전용 — 데이터는 localStorage에 저장됩니다.
-   실제 서비스에서는 백엔드 API 사용을 권장합니다.
+   Firebase Firestore + Auth 연결
+   - notices, inquiries 컬렉션
+   - 권한: Firestore Security Rules에 의해 강제됨
    ============================================================ */
+import { auth, db } from '../js/firebase.js';
+import {
+  onAuthStateChanged, signOut
+} from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js';
+import {
+  collection, doc, addDoc, updateDoc, deleteDoc,
+  getDocs, query, orderBy, serverTimestamp, Timestamp
+} from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
+
 (function(){
   'use strict';
 
-  // -------- Auth gate (sessionStorage) --------
-  if (sessionStorage.getItem('smtec_admin_demo') !== '1') {
-    window.location.replace('login.html');
-    return;
-  }
+  // -------- Auth gate (Firebase Auth) --------
+  let authReady = false;
+  onAuthStateChanged(auth, (user) => {
+    if (!user) { window.location.replace('login.html'); return; }
+    if (authReady) return;
+    authReady = true;
+    init();
+  });
 
-  // -------- Data layer (localStorage) --------
-  const NK = 'smtec_notices_demo';
-  const IK = 'smtec_inquiries_demo';
-
+  // -------- Helpers --------
   function escapeHTML(s){
     return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
-  function safeJSON(key, fallback){
-    try { return JSON.parse(localStorage.getItem(key)) || fallback; }
-    catch(e){ return fallback; }
-  }
-  function loadNotices(){ return safeJSON(NK, []); }
-  function saveNotices(arr){ localStorage.setItem(NK, JSON.stringify(arr)); }
-  function loadInquiries(){ return safeJSON(IK, []); }
-  function saveInquiries(arr){ localStorage.setItem(IK, JSON.stringify(arr)); }
-
   function todayStr(d){ d = d || new Date(); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}`; }
-
-  // -------- Seed default data on first run --------
-  if (loadNotices().length === 0) {
-    saveNotices([
-      { id: 1, cat:'NEWS', title:'AS9100 Rev.D 재인증 획득 안내', body:'에스엠테크가 AS9100 Rev.D 항공우주 품질경영 인증을 갱신했습니다.', date:'2026.04.15' },
-      { id: 2, cat:'EVENT', title:'DX KOREA 2026 방위산업 전시회 참가 안내', body:'에스엠테크가 DX KOREA 2026 전시회에 참가합니다.', date:'2026.03.22' },
-      { id: 3, cat:'HR', title:'2026년 상반기 생산기술 / R&D 경력직 채용', body:'에스엠테크 경력직 채용 공고입니다.', date:'2026.02.10' }
-    ]);
+  function tsToDateStr(ts){
+    try {
+      const d = ts && ts.toDate ? ts.toDate() : (ts ? new Date(ts) : null);
+      return d ? todayStr(d) : '';
+    } catch(e){ return ''; }
   }
+
+  // In-memory cache (refreshed on each tab switch / mutation)
+  let noticesCache = [];
+  let inquiriesCache = [];
+
+  async function fetchNotices(){
+    const snap = await getDocs(query(collection(db, 'notices'), orderBy('createdAt', 'desc')));
+    noticesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return noticesCache;
+  }
+  async function fetchInquiries(){
+    const snap = await getDocs(query(collection(db, 'inquiries'), orderBy('createdAt', 'desc')));
+    inquiriesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return inquiriesCache;
+  }
+
+  // -------- App init (only after auth confirmed) --------
+  function init(){
 
   // -------- Tab navigation --------
   const navLinks = document.querySelectorAll('.admin-nav a[data-tab]');
   const panes = document.querySelectorAll('section[data-pane]');
   const titles = { dashboard:'대시보드', notices:'공지사항', inquiries:'고객 문의' };
 
-  function activate(tab){
+  async function activate(tab){
     navLinks.forEach(a => a.classList.toggle('active', a.dataset.tab === tab));
     panes.forEach(p => p.hidden = p.dataset.pane !== tab);
     document.getElementById('pageTitle').textContent = titles[tab] || '대시보드';
-    if (tab === 'notices') renderNotices();
-    if (tab === 'inquiries') renderInquiries();
-    if (tab === 'dashboard') renderDashboard();
+    if (tab === 'notices') await renderNotices();
+    if (tab === 'inquiries') await renderInquiries();
+    if (tab === 'dashboard') await renderDashboard();
   }
   navLinks.forEach(a => a.addEventListener('click', e => {
     e.preventDefault(); activate(a.dataset.tab);
@@ -346,42 +362,40 @@
     b.addEventListener('click', e => { e.preventDefault(); activate(b.dataset.jump); });
   });
 
-  // -------- Logout --------
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    if (confirm('로그아웃 하시겠습니까?')) {
-      sessionStorage.removeItem('smtec_admin_demo');
-      sessionStorage.removeItem('smtec_admin_at');
-      window.location.replace('login.html');
-    }
+  // -------- Logout (Firebase Auth) --------
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    if (!confirm('로그아웃 하시겠습니까?')) return;
+    try { await signOut(auth); } catch(e){}
+    window.location.replace('login.html');
   });
 
   // -------- Dashboard render --------
-  function renderDashboard(){
-    const notices = loadNotices();
-    const inquiries = loadInquiries();
+  async function renderDashboard(){
+    const [notices, inquiries] = await Promise.all([fetchNotices(), fetchInquiries()]);
     document.getElementById('cntNotices').textContent = notices.length;
     document.getElementById('cntInquiries').textContent = inquiries.length;
     document.getElementById('cntUnread').textContent = inquiries.filter(i => !i.read).length;
 
     const today = todayStr();
-    const todayCount = notices.filter(n => n.date === today).length + inquiries.filter(i => i.date === today).length;
+    const todayCount =
+      notices.filter(n => tsToDateStr(n.createdAt) === today).length +
+      inquiries.filter(i => tsToDateStr(i.createdAt) === today).length;
     document.getElementById('cntToday').textContent = todayCount;
 
-    // Recent
     const rn = document.getElementById('recentNotices');
     if (notices.length === 0) {
       rn.innerHTML = '<tr><td colspan="4" class="empty">데이터가 없습니다.</td></tr>';
     } else {
-      rn.innerHTML = notices.slice(-5).reverse().map(n =>
-        `<tr><td>${n.id}</td><td><span class="badge ${n.cat==='NEWS'?'news':n.cat==='EVENT'?'event':'notice'}">${escapeHTML(n.cat)}</span></td><td>${escapeHTML(n.title)}</td><td>${escapeHTML(n.date)}</td></tr>`
+      rn.innerHTML = notices.slice(0, 5).map(n =>
+        `<tr><td>${escapeHTML(n.id.slice(0,6))}</td><td><span class="badge ${n.cat==='NEWS'?'news':n.cat==='EVENT'?'event':'notice'}">${escapeHTML(n.cat||'NOTICE')}</span></td><td>${escapeHTML(n.title||'')}</td><td>${escapeHTML(n.date||tsToDateStr(n.createdAt))}</td></tr>`
       ).join('');
     }
     const ri = document.getElementById('recentInquiries');
     if (inquiries.length === 0) {
       ri.innerHTML = '<tr><td colspan="4" class="empty">데이터가 없습니다.</td></tr>';
     } else {
-      ri.innerHTML = inquiries.slice(-5).reverse().map(q =>
-        `<tr><td>${q.id}</td><td><span class="badge ${q.read?'read':'unread'}">${q.read?'READ':'NEW'}</span></td><td><b>${escapeHTML(q.company||'-')}</b> · ${escapeHTML(q.subject||'')}</td><td>${escapeHTML(q.date)}</td></tr>`
+      ri.innerHTML = inquiries.slice(0, 5).map(q =>
+        `<tr><td>${escapeHTML(q.id.slice(0,6))}</td><td><span class="badge ${q.read?'read':'unread'}">${q.read?'READ':'NEW'}</span></td><td><b>${escapeHTML(q.company||'-')}</b> · ${escapeHTML(q.subject||'')}</td><td>${escapeHTML(tsToDateStr(q.createdAt))}</td></tr>`
       ).join('');
     }
   }
@@ -391,18 +405,18 @@
   const noticeModal = document.getElementById('noticeModal');
   const noticeForm = document.getElementById('noticeForm');
 
-  function renderNotices(){
-    const list = loadNotices();
+  async function renderNotices(){
+    const list = await fetchNotices();
     if (list.length === 0) {
       noticeList.innerHTML = '<tr><td colspan="5" class="empty">등록된 공지가 없습니다.</td></tr>';
       return;
     }
-    noticeList.innerHTML = [...list].reverse().map(n =>
+    noticeList.innerHTML = list.map(n =>
       `<tr>
-         <td>${n.id}</td>
-         <td><span class="badge ${n.cat==='NEWS'?'news':n.cat==='EVENT'?'event':'notice'}">${escapeHTML(n.cat)}</span></td>
-         <td>${escapeHTML(n.title)}</td>
-         <td>${escapeHTML(n.date)}</td>
+         <td>${escapeHTML(n.id.slice(0,6))}</td>
+         <td><span class="badge ${n.cat==='NEWS'?'news':n.cat==='EVENT'?'event':'notice'}">${escapeHTML(n.cat||'NOTICE')}</span></td>
+         <td>${escapeHTML(n.title||'')}</td>
+         <td>${escapeHTML(n.date||tsToDateStr(n.createdAt))}</td>
          <td>
            <button class="btn-sm ghost" data-edit="${n.id}">수정</button>
            <button class="btn-sm danger" data-del="${n.id}">삭제</button>
@@ -413,18 +427,21 @@
 
   document.getElementById('addNoticeBtn').addEventListener('click', () => openNoticeModal());
 
-  noticeList.addEventListener('click', e => {
+  noticeList.addEventListener('click', async e => {
     const ed = e.target.closest('[data-edit]');
     const dl = e.target.closest('[data-del]');
     if (ed) {
-      const id = +ed.dataset.edit;
-      const n = loadNotices().find(x=>x.id===id);
+      const id = ed.dataset.edit;
+      const n = noticesCache.find(x => x.id === id);
       if (n) openNoticeModal(n);
     } else if (dl) {
-      const id = +dl.dataset.del;
-      if (confirm('이 공지를 삭제하시겠습니까?')) {
-        saveNotices(loadNotices().filter(x=>x.id!==id));
-        renderNotices();
+      const id = dl.dataset.del;
+      if (!confirm('이 공지를 삭제하시겠습니까?')) return;
+      try {
+        await deleteDoc(doc(db, 'notices', id));
+        await renderNotices();
+      } catch(err) {
+        alert('삭제 실패: ' + (err.message || err.code || ''));
       }
     }
   });
@@ -442,7 +459,7 @@
   document.getElementById('noticeCancel').addEventListener('click', closeNoticeModal);
   noticeModal.addEventListener('click', e => { if (e.target === noticeModal) closeNoticeModal(); });
 
-  noticeForm.addEventListener('submit', e => {
+  noticeForm.addEventListener('submit', async e => {
     e.preventDefault();
     const id = document.getElementById('noticeId').value;
     const cat = document.getElementById('noticeCat').value;
@@ -450,37 +467,41 @@
     const body = document.getElementById('noticeBody').value.trim();
     if (!title) return;
 
-    const list = loadNotices();
-    if (id) {
-      const idx = list.findIndex(x=>x.id===+id);
-      if (idx >= 0) list[idx] = { ...list[idx], cat, title, body };
-    } else {
-      const nextId = list.length ? Math.max(...list.map(x=>x.id)) + 1 : 1;
-      list.push({ id: nextId, cat, title, body, date: todayStr() });
+    try {
+      if (id) {
+        await updateDoc(doc(db, 'notices', id), { cat, title, body });
+      } else {
+        await addDoc(collection(db, 'notices'), {
+          cat, title, body,
+          date: todayStr(),
+          createdAt: serverTimestamp()
+        });
+      }
+      closeNoticeModal();
+      await renderNotices();
+    } catch(err) {
+      alert('저장 실패: ' + (err.message || err.code || ''));
     }
-    saveNotices(list);
-    closeNoticeModal();
-    renderNotices();
   });
 
   // -------- Inquiry management --------
   const inquiryList = document.getElementById('inquiryList');
   const inquiryModal = document.getElementById('inquiryModal');
 
-  function renderInquiries(){
-    const list = loadInquiries();
+  async function renderInquiries(){
+    const list = await fetchInquiries();
     if (list.length === 0) {
-      inquiryList.innerHTML = '<tr><td colspan="7" class="empty">접수된 문의가 없습니다. 우측 상단 버튼으로 샘플 데이터를 추가할 수 있습니다.</td></tr>';
+      inquiryList.innerHTML = '<tr><td colspan="7" class="empty">접수된 문의가 없습니다.</td></tr>';
       return;
     }
-    inquiryList.innerHTML = [...list].reverse().map(q =>
+    inquiryList.innerHTML = list.map(q =>
       `<tr>
-         <td>${q.id}</td>
+         <td>${escapeHTML(q.id.slice(0,6))}</td>
          <td><span class="badge ${q.read?'read':'unread'}">${q.read?'READ':'NEW'}</span></td>
          <td>${escapeHTML(q.company||'-')}</td>
          <td>${escapeHTML(q.subject||'(제목 없음)')}</td>
          <td>${escapeHTML(q.name||'-')}<br><span style="font-size:12px;color:var(--text-3);">${escapeHTML(q.email||q.phone||'')}</span></td>
-         <td>${escapeHTML(q.date)}</td>
+         <td>${escapeHTML(tsToDateStr(q.createdAt))}</td>
          <td>
            <button class="btn-sm ghost" data-view="${q.id}">보기</button>
            <button class="btn-sm danger" data-rm="${q.id}">삭제</button>
@@ -489,18 +510,22 @@
     ).join('');
   }
 
-  inquiryList.addEventListener('click', e => {
+  inquiryList.addEventListener('click', async e => {
     const v = e.target.closest('[data-view]');
     const r = e.target.closest('[data-rm]');
     if (v) {
-      const id = +v.dataset.view;
-      const list = loadInquiries();
-      const q = list.find(x=>x.id===id);
+      const id = v.dataset.view;
+      const q = inquiriesCache.find(x => x.id === id);
       if (!q) return;
+
       // mark as read
-      q.read = true;
-      saveInquiries(list);
-      renderInquiries();
+      if (!q.read) {
+        try {
+          await updateDoc(doc(db, 'inquiries', id), { read: true });
+          q.read = true;
+          await renderInquiries();
+        } catch(err){ /* read 실패해도 상세는 열어줌 */ }
+      }
 
       document.getElementById('inquiryDetail').innerHTML = `
         <div style="display:grid;grid-template-columns:120px 1fr;gap:8px 14px;font-size:13px;">
@@ -510,39 +535,43 @@
           <span style="color:var(--text-3);">TEL</span><span>${escapeHTML(q.phone||'-')}</span>
           <span style="color:var(--text-3);">유형</span><span>${escapeHTML(q.type||'-')}</span>
           <span style="color:var(--text-3);">제목</span><span><b>${escapeHTML(q.subject||'-')}</b></span>
-          <span style="color:var(--text-3);">접수일</span><span>${escapeHTML(q.date)}</span>
+          <span style="color:var(--text-3);">접수일</span><span>${escapeHTML(tsToDateStr(q.createdAt))}</span>
         </div>
         <div style="margin-top:18px;padding-top:18px;border-top:1px dashed var(--border-soft);white-space:pre-wrap;">${escapeHTML(q.message||'')}</div>
       `;
       inquiryModal.classList.add('show');
     } else if (r) {
-      const id = +r.dataset.rm;
-      if (confirm('이 문의를 삭제하시겠습니까?')) {
-        saveInquiries(loadInquiries().filter(x=>x.id!==id));
-        renderInquiries();
+      const id = r.dataset.rm;
+      if (!confirm('이 문의를 삭제하시겠습니까?')) return;
+      try {
+        await deleteDoc(doc(db, 'inquiries', id));
+        await renderInquiries();
+      } catch(err) {
+        alert('삭제 실패: ' + (err.message || err.code || ''));
       }
     }
   });
   document.getElementById('inquiryCloseBtn').addEventListener('click', () => inquiryModal.classList.remove('show'));
   inquiryModal.addEventListener('click', e => { if (e.target === inquiryModal) inquiryModal.classList.remove('show'); });
 
-  document.getElementById('seedInquiryBtn').addEventListener('click', () => {
-    const list = loadInquiries();
-    const nextId = list.length ? Math.max(...list.map(x=>x.id)) + 1 : 1;
-    list.push({
-      id: nextId,
-      company: '샘플 회사 ' + nextId,
-      name: '담당자' + nextId,
-      email: 'demo'+nextId+'@example.com',
-      phone: '010-0000-0000',
-      type: '일반 문의',
-      subject: '5축 가공 부품 견적 문의 #' + nextId,
-      message: '샘플 문의 내용입니다. 실제 운영에서는 inquiry.html 폼이 백엔드 API로 전송된 데이터가 여기 표시됩니다.',
-      date: todayStr(),
-      read: false
-    });
-    saveInquiries(list);
-    renderInquiries();
+  // 샘플 데이터 버튼: Firestore에 직접 addDoc
+  document.getElementById('seedInquiryBtn').addEventListener('click', async () => {
+    try {
+      await addDoc(collection(db, 'inquiries'), {
+        company: '샘플 회사',
+        name: '담당자',
+        email: 'demo@example.com',
+        phone: '010-0000-0000',
+        type: '일반 문의',
+        subject: '5축 가공 부품 견적 문의',
+        message: '샘플 문의 내용입니다. 실제 환경에서는 inquiry.html 폼이 작성되면 여기 표시됩니다.',
+        read: false,
+        createdAt: serverTimestamp()
+      });
+      await renderInquiries();
+    } catch(err) {
+      alert('샘플 추가 실패: ' + (err.message || err.code || ''));
+    }
   });
 
   // -------- Live clock --------
@@ -558,6 +587,7 @@
 
   // initial
   activate('dashboard');
+  } // end init
 })();
 </script>
 </body>

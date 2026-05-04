@@ -231,211 +231,222 @@
 </footer>
 
 <script src="../js/main.js"></script>
-<script>
+<script type="module">
 /* ============================================================
-   공지사항 게시판 — admin 대시보드와 동일한 localStorage 키 사용
-   key: smtec_notices_demo
-   shape: [{ id, cat, title, body, date }]
+   공지사항 게시판 — Firestore 컬렉션 'notices'
+   조회수는 브라우저별(localStorage)로 카운트
    ============================================================ */
-(function(){
-  'use strict';
+import { db } from '../js/firebase.js';
+import {
+  collection, getDocs, query, orderBy
+} from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
 
-  const NK = 'smtec_notices_demo';
-  const VK = 'smtec_notices_views';
-  const PER_PAGE = 10;
+const VK = 'smtec_notices_views';
+const PER_PAGE = 10;
 
-  function escapeHTML(s){
-    return String(s ?? '').replace(/[&<>"']/g, c => ({
-      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-    }[c]));
-  }
-  function safeJSON(key, fallback){
-    try { return JSON.parse(localStorage.getItem(key)) || fallback; }
-    catch(e){ return fallback; }
-  }
-  function loadNotices(){ return safeJSON(NK, []); }
-  function loadViews(){ return safeJSON(VK, {}); }
-  function saveViews(v){ localStorage.setItem(VK, JSON.stringify(v)); }
+function escapeHTML(s){
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[c]));
+}
+function safeJSON(key, fallback){
+  try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+  catch(e){ return fallback; }
+}
+function loadViews(){ return safeJSON(VK, {}); }
+function saveViews(v){ localStorage.setItem(VK, JSON.stringify(v)); }
+function tsToDateStr(ts){
+  try {
+    const d = ts && ts.toDate ? ts.toDate() : (ts ? new Date(ts) : null);
+    if (!d) return '';
+    const p = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}`;
+  } catch(e){ return ''; }
+}
 
-  // -------- State --------
-  let state = {
-    cat: 'ALL',
-    q: '',
-    page: 1,
-    detailId: null,
-  };
+let allNotices = [];
+let state = { cat: 'ALL', q: '', page: 1, detailId: null };
 
-  const tbody = document.getElementById('boardBody');
-  const pager = document.getElementById('boardPager');
-  const filter = document.getElementById('boardFilter');
-  const search = document.getElementById('boardSearch');
+const tbody = document.getElementById('boardBody');
+const pager = document.getElementById('boardPager');
+const filter = document.getElementById('boardFilter');
+const search = document.getElementById('boardSearch');
 
-  // -------- Filtered list (newest first) --------
-  function filteredList(){
-    const all = loadNotices().slice().sort((a,b) => b.id - a.id);
-    return all.filter(n => {
-      if (state.cat !== 'ALL' && n.cat !== state.cat) return false;
-      if (state.q && !String(n.title||'').toLowerCase().includes(state.q.toLowerCase())) return false;
-      return true;
-    });
-  }
+async function loadFromFirestore(){
+  const snap = await getDocs(query(collection(db, 'notices'), orderBy('createdAt', 'desc')));
+  allNotices = snap.docs.map((d, i) => ({
+    id: d.id,
+    seq: snap.docs.length - i, // 표시용 번호 (최신=가장 큰 수)
+    ...d.data()
+  }));
+}
 
-  // -------- Render list --------
-  function render(){
-    const list = filteredList();
-    const views = loadViews();
-
-    if (list.length === 0) {
-      tbody.innerHTML = `
-        <tr><td colspan="5" class="empty-cell">
-          <svg class="em-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-          </svg>
-          <div>${state.q || state.cat !== 'ALL' ? '검색 결과가 없습니다.' : '등록된 공지가 없습니다.'}</div>
-        </td></tr>`;
-      pager.innerHTML = '';
-      return;
-    }
-
-    const totalPages = Math.max(1, Math.ceil(list.length / PER_PAGE));
-    if (state.page > totalPages) state.page = totalPages;
-    const start = (state.page - 1) * PER_PAGE;
-    const slice = list.slice(start, start + PER_PAGE);
-
-    tbody.innerHTML = slice.map(n => {
-      const no = String(n.id).padStart(3, '0');
-      const v = views[n.id] || 0;
-      return `
-        <tr>
-          <td>${no}</td>
-          <td><span class="cat">${escapeHTML(n.cat||'NOTICE')}</span></td>
-          <td class="title-cell" data-id="${n.id}"><span class="t-link">${escapeHTML(n.title||'')}</span></td>
-          <td>${escapeHTML(n.date||'')}</td>
-          <td>${v.toLocaleString()}</td>
-        </tr>`;
-    }).join('');
-
-    // pager
-    let pHTML = `<button data-pg="prev" ${state.page===1?'disabled':''}>‹</button>`;
-    const win = 5;
-    let from = Math.max(1, state.page - Math.floor(win/2));
-    let to = Math.min(totalPages, from + win - 1);
-    from = Math.max(1, to - win + 1);
-    for (let i = from; i <= to; i++) {
-      pHTML += `<button data-pg="${i}" class="${i===state.page?'on':''}">${i}</button>`;
-    }
-    pHTML += `<button data-pg="next" ${state.page===totalPages?'disabled':''}>›</button>`;
-    pager.innerHTML = pHTML;
-  }
-
-  // -------- Detail --------
-  const overlay = document.getElementById('ntOverlay');
-  const ntNo = document.getElementById('ntNo');
-  const ntCat = document.getElementById('ntCat');
-  const ntDate = document.getElementById('ntDate');
-  const ntTitle = document.getElementById('ntTitle');
-  const ntBody = document.getElementById('ntBody');
-  const ntPrev = document.getElementById('ntPrev');
-  const ntNext = document.getElementById('ntNext');
-
-  function openDetail(id){
-    const list = filteredList();
-    const idx = list.findIndex(n => n.id === id);
-    if (idx < 0) return;
-    const n = list[idx];
-
-    // increment view count
-    const views = loadViews();
-    views[n.id] = (views[n.id] || 0) + 1;
-    saveViews(views);
-
-    state.detailId = id;
-    ntNo.textContent = '#' + String(n.id).padStart(3, '0');
-    ntCat.textContent = n.cat || 'NOTICE';
-    ntDate.textContent = n.date || '';
-    ntTitle.textContent = n.title || '';
-    if (n.body && n.body.trim()) {
-      ntBody.textContent = n.body;
-      ntBody.classList.remove('empty');
-    } else {
-      ntBody.textContent = '본문 내용이 없습니다.';
-      ntBody.classList.add('empty');
-    }
-    ntPrev.disabled = idx === list.length - 1;
-    ntNext.disabled = idx === 0;
-    overlay.classList.add('show');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeDetail(){
-    overlay.classList.remove('show');
-    document.body.style.overflow = '';
-    state.detailId = null;
-    render();
-  }
-  function navDetail(dir){
-    const list = filteredList();
-    const idx = list.findIndex(n => n.id === state.detailId);
-    if (idx < 0) return;
-    const next = idx + (dir === 'next' ? -1 : 1);
-    if (next < 0 || next >= list.length) return;
-    openDetail(list[next].id);
-  }
-
-  // -------- Event wiring --------
-  tbody.addEventListener('click', e => {
-    const cell = e.target.closest('.title-cell');
-    if (cell) openDetail(+cell.dataset.id);
+function filteredList(){
+  return allNotices.filter(n => {
+    if (state.cat !== 'ALL' && n.cat !== state.cat) return false;
+    if (state.q && !String(n.title||'').toLowerCase().includes(state.q.toLowerCase())) return false;
+    return true;
   });
+}
 
-  pager.addEventListener('click', e => {
-    const b = e.target.closest('button[data-pg]');
-    if (!b || b.disabled) return;
-    const v = b.dataset.pg;
-    const totalPages = Math.max(1, Math.ceil(filteredList().length / PER_PAGE));
-    if (v === 'prev') state.page = Math.max(1, state.page - 1);
-    else if (v === 'next') state.page = Math.min(totalPages, state.page + 1);
-    else state.page = +v;
-    render();
-    window.scrollTo({ top: document.querySelector('.notice-table').offsetTop - 80, behavior:'smooth' });
-  });
+function render(){
+  const list = filteredList();
+  const views = loadViews();
 
-  filter.addEventListener('click', e => {
-    const b = e.target.closest('button[data-cat]');
-    if (!b) return;
-    filter.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
-    state.cat = b.dataset.cat;
+  if (list.length === 0) {
+    tbody.innerHTML = `
+      <tr><td colspan="5" class="empty-cell">
+        <svg class="em-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <div>${state.q || state.cat !== 'ALL' ? '검색 결과가 없습니다.' : '등록된 공지가 없습니다.'}</div>
+      </td></tr>`;
+    pager.innerHTML = '';
+    return;
+  }
+
+  const totalPages = Math.max(1, Math.ceil(list.length / PER_PAGE));
+  if (state.page > totalPages) state.page = totalPages;
+  const start = (state.page - 1) * PER_PAGE;
+  const slice = list.slice(start, start + PER_PAGE);
+
+  tbody.innerHTML = slice.map(n => {
+    const no = String(n.seq).padStart(3, '0');
+    const v = views[n.id] || 0;
+    return `
+      <tr>
+        <td>${no}</td>
+        <td><span class="cat">${escapeHTML(n.cat||'NOTICE')}</span></td>
+        <td class="title-cell" data-id="${n.id}"><span class="t-link">${escapeHTML(n.title||'')}</span></td>
+        <td>${escapeHTML(n.date || tsToDateStr(n.createdAt))}</td>
+        <td>${v.toLocaleString()}</td>
+      </tr>`;
+  }).join('');
+
+  let pHTML = `<button data-pg="prev" ${state.page===1?'disabled':''}>‹</button>`;
+  const win = 5;
+  let from = Math.max(1, state.page - Math.floor(win/2));
+  let to = Math.min(totalPages, from + win - 1);
+  from = Math.max(1, to - win + 1);
+  for (let i = from; i <= to; i++) {
+    pHTML += `<button data-pg="${i}" class="${i===state.page?'on':''}">${i}</button>`;
+  }
+  pHTML += `<button data-pg="next" ${state.page===totalPages?'disabled':''}>›</button>`;
+  pager.innerHTML = pHTML;
+}
+
+// -------- Detail --------
+const overlay = document.getElementById('ntOverlay');
+const ntNo = document.getElementById('ntNo');
+const ntCat = document.getElementById('ntCat');
+const ntDate = document.getElementById('ntDate');
+const ntTitle = document.getElementById('ntTitle');
+const ntBody = document.getElementById('ntBody');
+const ntPrev = document.getElementById('ntPrev');
+const ntNext = document.getElementById('ntNext');
+
+function openDetail(id){
+  const list = filteredList();
+  const idx = list.findIndex(n => n.id === id);
+  if (idx < 0) return;
+  const n = list[idx];
+
+  const views = loadViews();
+  views[n.id] = (views[n.id] || 0) + 1;
+  saveViews(views);
+
+  state.detailId = id;
+  ntNo.textContent = '#' + String(n.seq).padStart(3, '0');
+  ntCat.textContent = n.cat || 'NOTICE';
+  ntDate.textContent = n.date || tsToDateStr(n.createdAt) || '';
+  ntTitle.textContent = n.title || '';
+  if (n.body && n.body.trim()) {
+    ntBody.textContent = n.body;
+    ntBody.classList.remove('empty');
+  } else {
+    ntBody.textContent = '본문 내용이 없습니다.';
+    ntBody.classList.add('empty');
+  }
+  ntPrev.disabled = idx === list.length - 1;
+  ntNext.disabled = idx === 0;
+  overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeDetail(){
+  overlay.classList.remove('show');
+  document.body.style.overflow = '';
+  state.detailId = null;
+  render();
+}
+function navDetail(dir){
+  const list = filteredList();
+  const idx = list.findIndex(n => n.id === state.detailId);
+  if (idx < 0) return;
+  const next = idx + (dir === 'next' ? -1 : 1);
+  if (next < 0 || next >= list.length) return;
+  openDetail(list[next].id);
+}
+
+// -------- Event wiring --------
+tbody.addEventListener('click', e => {
+  const cell = e.target.closest('.title-cell');
+  if (cell) openDetail(cell.dataset.id);
+});
+
+pager.addEventListener('click', e => {
+  const b = e.target.closest('button[data-pg]');
+  if (!b || b.disabled) return;
+  const v = b.dataset.pg;
+  const totalPages = Math.max(1, Math.ceil(filteredList().length / PER_PAGE));
+  if (v === 'prev') state.page = Math.max(1, state.page - 1);
+  else if (v === 'next') state.page = Math.min(totalPages, state.page + 1);
+  else state.page = +v;
+  render();
+  window.scrollTo({ top: document.querySelector('.notice-table').offsetTop - 80, behavior:'smooth' });
+});
+
+filter.addEventListener('click', e => {
+  const b = e.target.closest('button[data-cat]');
+  if (!b) return;
+  filter.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  state.cat = b.dataset.cat;
+  state.page = 1;
+  render();
+});
+
+let searchTimer = null;
+search.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    state.q = search.value.trim();
     state.page = 1;
     render();
-  });
+  }, 200);
+});
 
-  let searchTimer = null;
-  search.addEventListener('input', () => {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => {
-      state.q = search.value.trim();
-      state.page = 1;
-      render();
-    }, 200);
-  });
+document.getElementById('ntClose').addEventListener('click', closeDetail);
+ntPrev.addEventListener('click', () => navDetail('prev'));
+ntNext.addEventListener('click', () => navDetail('next'));
+overlay.addEventListener('click', e => { if (e.target === overlay) closeDetail(); });
+document.addEventListener('keydown', e => {
+  if (!overlay.classList.contains('show')) return;
+  if (e.key === 'Escape') closeDetail();
+  else if (e.key === 'ArrowLeft') navDetail('prev');
+  else if (e.key === 'ArrowRight') navDetail('next');
+});
 
-  document.getElementById('ntClose').addEventListener('click', closeDetail);
-  ntPrev.addEventListener('click', () => navDetail('prev'));
-  ntNext.addEventListener('click', () => navDetail('next'));
-  overlay.addEventListener('click', e => { if (e.target === overlay) closeDetail(); });
-  document.addEventListener('keydown', e => {
-    if (!overlay.classList.contains('show')) return;
-    if (e.key === 'Escape') closeDetail();
-    else if (e.key === 'ArrowLeft') navDetail('prev');
-    else if (e.key === 'ArrowRight') navDetail('next');
-  });
-
-  // Re-render when admin updates notices in another tab
-  window.addEventListener('storage', e => {
-    if (e.key === NK) render();
-  });
-
+// Initial load
+tbody.innerHTML = `<tr><td colspan="5" class="empty-cell"><div>불러오는 중…</div></td></tr>`;
+try {
+  await loadFromFirestore();
   render();
-})();
+} catch (err) {
+  console.error('[notices] firestore error', err);
+  tbody.innerHTML = `<tr><td colspan="5" class="empty-cell">
+    <div>공지사항을 불러오지 못했습니다.</div>
+    <div style="font-size:12px;margin-top:6px;color:var(--text-3);">${escapeHTML(err.message||err.code||'')}</div>
+  </td></tr>`;
+}
 </script>
 </body>
 </html>
