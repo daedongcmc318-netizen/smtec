@@ -2,13 +2,19 @@
 (function () {
   'use strict';
 
-  // Mobile nav toggle
+  // Mobile nav toggle (lock body scroll when open)
   const toggle = document.querySelector('.nav-toggle');
   const menu = document.querySelector('.nav-menu');
   if (toggle && menu) {
-    toggle.addEventListener('click', () => {
-      menu.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', menu.classList.contains('open'));
+    const setOpen = (open) => {
+      menu.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', open);
+      document.body.style.overflow = open ? 'hidden' : '';
+    };
+    toggle.addEventListener('click', () => setOpen(!menu.classList.contains('open')));
+    // Close when window resized to desktop
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 768 && menu.classList.contains('open')) setOpen(false);
     });
   }
 
