@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>고객 문의 | SM TECH</title>
+<link rel="icon" href="../img/logo.png">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="../index.html" class="logo"><img src="../img/logo.png" alt="SM TECH"><span class="logo-text">SM TECH</span></a>
+    <nav><ul class="nav-menu">
+      <li class="nav-item has-sub"><a class="nav-link" href="greeting.html">회사소개</a><ul class="submenu"><li><a href="greeting.html">인사말</a></li><li><a href="philosophy.html">경영 이념 &amp; 목표</a></li><li><a href="history.html">회사연혁</a></li><li><a href="certifications.html">주요인증</a></li><li><a href="organization.html">조직도</a></li><li><a href="location.html">오시는길</a></li></ul></li>
+      <li class="nav-item has-sub"><a class="nav-link" href="business.html">사업영역</a><ul class="submenu"><li><a href="business.html">사업소개</a></li><li><a href="clients.html">주요 고객사</a></li></ul></li>
+      <li class="nav-item has-sub"><a class="nav-link" href="defense.html">제품소개</a><ul class="submenu"><li><a href="defense.html">방산부문</a></li><li><a href="aerospace.html">항공/기타</a></li><li><a href="satellite.html">위성</a></li></ul></li>
+      <li class="nav-item has-sub"><a class="nav-link" href="equipment.html">설비 현황</a><ul class="submenu"><li><a href="equipment.html">설비 현황</a></li><li><a href="instruments.html">계측기</a></li></ul></li>
+      <li class="nav-item"><a class="nav-link" href="process.html">제작 공정</a></li>
+      <li class="nav-item has-sub"><a class="nav-link" href="notices.html">고객지원</a><ul class="submenu"><li><a href="notices.html">공지사항</a></li><li><a href="inquiry.html">고객 문의</a></li></ul></li>
+    </ul></nav>
+    <a href="inquiry.html" class="nav-cta">문의하기 →</a>
+    <button class="nav-toggle" aria-label="메뉴"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="page-hero-inner">
+    <div class="crumb"><a href="../index.html">HOME</a> / 고객지원 / <span class="text-accent">고객 문의</span></div>
+    <h1>Let's <span class="grad">Engineer Together</span></h1>
+    <p class="lead">도면 · 사양서 · 예상 수량을 공유해 주세요. 담당 엔지니어가 24시간 내에 회신 드립니다.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="two-col">
+      <form class="reveal" onsubmit="event.preventDefault(); alert('문의가 접수되었습니다. 영업일 기준 24시간 내에 회신드리겠습니다.'); this.reset();">
+        <div class="form-grid">
+          <div class="form-field">
+            <label>회사명 <span style="color:var(--accent);">*</span></label>
+            <input type="text" name="company" required placeholder="ACME Defense Co.">
+          </div>
+          <div class="form-field">
+            <label>담당자명 <span style="color:var(--accent);">*</span></label>
+            <input type="text" name="name" required placeholder="홍길동">
+          </div>
+          <div class="form-field">
+            <label>E-MAIL <span style="color:var(--accent);">*</span></label>
+            <input type="email" name="email" required placeholder="contact@company.com">
+          </div>
+          <div class="form-field">
+            <label>TEL</label>
+            <input type="tel" name="phone" placeholder="010-0000-0000">
+          </div>
+          <div class="form-field full">
+            <label>문의 유형</label>
+            <select name="type">
+              <option>일반 문의</option>
+              <option>방산 부품 견적 (NDA 필요)</option>
+              <option>항공 / 항공우주 부품 견적</option>
+              <option>위성 / MGSE 관련 문의</option>
+              <option>방문 예약</option>
+              <option>채용 / 기타</option>
+            </select>
+          </div>
+          <div class="form-field full">
+            <label>제목 <span style="color:var(--accent);">*</span></label>
+            <input type="text" name="subject" required placeholder="예) 5축 가공 부품 견적 문의">
+          </div>
+          <div class="form-field full">
+            <label>내용 <span style="color:var(--accent);">*</span></label>
+            <textarea name="message" required placeholder="요청 사양, 수량, 납기 등 상세 내용을 입력해 주세요."></textarea>
+          </div>
+          <div class="form-field full">
+            <label>첨부 파일 (도면 등)</label>
+            <input type="file" name="attachment" multiple>
+          </div>
+          <div class="form-field full" style="display:flex;align-items:center;gap:12px;">
+            <input type="checkbox" id="agree" required style="width:18px;height:18px;accent-color:var(--accent);">
+            <label for="agree" style="font-family:inherit;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text-2);">
+              개인정보 수집·이용에 동의합니다. (문의 응대 외 용도로 사용되지 않습니다.)
+            </label>
+          </div>
+          <div class="form-field full">
+            <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:18px;">
+              문의 보내기 <span class="arrow">→</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <div class="reveal">
+        <div class="info-panel">
+          <div class="row"><span class="k">TEL</span><span class="v">054-977-9113~4</span></div>
+          <div class="row"><span class="k">FAX</span><span class="v">054-977-9115</span></div>
+          <div class="row"><span class="k">E-MAIL</span><span class="v">smtec@smtec.or.kr</span></div>
+          <div class="row"><span class="k">HOURS</span><span class="v">평일 09:00 — 18:00</span></div>
+          <div class="row"><span class="k">RESPONSE</span><span class="v text-accent">● 24H within</span></div>
+        </div>
+
+        <div class="feature-card mt-32">
+          <div class="num">NDA / 기밀 문의</div>
+          <h3 style="font-size:18px;">방산 관련 도면</h3>
+          <p>방산 규격 부품은 NDA 체결 후 대응합니다. 이메일로 사전 연락 주시기 바랍니다.</p>
+        </div>
+        <div class="feature-card mt-16">
+          <div class="num">방문 예약</div>
+          <h3 style="font-size:18px;">공장 투어</h3>
+          <p>보안시설 특성상 최소 3영업일 전 사전 예약이 필요합니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><img src="../img/logo.png" alt="SM TECH" class="footer-logo"></div>
+    <div><h5>Navigation</h5><p><a href="greeting.html">회사소개</a></p><p><a href="business.html">사업영역</a></p><p><a href="defense.html">제품소개</a></p></div>
+    <div><h5>Support</h5><p><a href="notices.html">공지사항</a></p><p><a href="inquiry.html">고객문의</a></p><p><a href="location.html">오시는길</a></p></div>
+    <div><h5>Contact</h5><p>경상북도 칠곡군 약목면 무림4길 51 (본사)</p><p>T. 054-977-9113~4</p><p>E. smtec@smtec.or.kr</p></div>
+  </div>
+  <div class="footer-bottom"><span>© <span data-year></span> SM TECH Co., Ltd.</span><a href="../admin/login.html" class="admin-link">Admin</a></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

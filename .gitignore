@@ -1,0 +1,25 @@
+# Local source materials (not for deployment)
+기본자료/
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+
+# Build / dependencies
+node_modules/
+*.log
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Misc
+*.zip
+.cache/

@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>관리자 대시보드 | SM TECH</title>
+<link rel="icon" href="../img/logo.png">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  body { padding-top: 0; }
+  .admin-shell{ display:grid; grid-template-columns: 240px 1fr; min-height:100vh; }
+  .admin-aside{
+    background:#0b1324; color:#cfd8ee;
+    padding:28px 22px; position:sticky; top:0; height:100vh;
+    display:flex; flex-direction:column;
+  }
+  .admin-brand{ display:flex; align-items:center; gap:10px; margin-bottom:32px;}
+  .admin-brand img{ height:34px; filter:drop-shadow(0 2px 8px rgba(14,165,233,0.4)); }
+  .admin-brand span{ font-family:'Rajdhani',sans-serif; font-weight:700; font-size:18px; letter-spacing:0.04em; color:#fff;}
+  .admin-nav{ list-style:none; padding:0; margin:0; flex:1;}
+  .admin-nav li a{
+    display:flex; align-items:center; gap:10px;
+    padding:11px 14px; border-radius:8px;
+    color:rgba(207,216,238,0.78); font-size:14px; font-weight:500;
+    transition:all 0.2s var(--ease);
+  }
+  .admin-nav li a:hover{ background:rgba(255,255,255,0.06); color:#fff;}
+  .admin-nav li a.active{
+    background:linear-gradient(135deg, rgba(14,165,233,0.18), rgba(124,58,237,0.12));
+    color:#fff; box-shadow:inset 0 0 0 1px rgba(14,165,233,0.4);
+  }
+  .admin-nav li a svg{ width:18px; height:18px; flex-shrink:0;}
+  .admin-bottom{ padding-top:14px; border-top:1px solid rgba(255,255,255,0.08); font-size:12px; color:rgba(207,216,238,0.55);}
+  .admin-bottom button{ display:flex; align-items:center; gap:8px; padding:10px 14px; width:100%; color:#fef3c7; font-size:13px; cursor:pointer; border-radius:6px; transition:background 0.2s;}
+  .admin-bottom button:hover{ background:rgba(220,38,38,0.18); color:#fee2e2;}
+
+  .admin-main{ padding:32px 40px; background:var(--bg-0); min-height:100vh; }
+  .admin-top{
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:28px; padding-bottom:20px;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .admin-top h1{ font-family:'Rajdhani',sans-serif; font-size:28px; font-weight:700; color:var(--text-0); letter-spacing:-0.005em;}
+  .admin-top .meta{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-3); letter-spacing:0.08em; text-transform:uppercase;}
+
+  .admin-stats{ display:grid; grid-template-columns:repeat(4, 1fr); gap:18px; margin-bottom:32px;}
+  .admin-stat{
+    background:#fff; border:1px solid var(--border-soft);
+    border-radius:12px; padding:20px 22px;
+    box-shadow:var(--shadow-sm);
+  }
+  .admin-stat .lbl{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-3); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:8px;}
+  .admin-stat .val{ font-family:'Rajdhani',sans-serif; font-size:32px; font-weight:700; background:linear-gradient(135deg,var(--accent),var(--accent-purple)); -webkit-background-clip:text; background-clip:text; color:transparent; line-height:1;}
+  .admin-stat .delta{ font-size:12px; color:var(--text-2); margin-top:6px;}
+
+  .admin-card{
+    background:#fff; border:1px solid var(--border-soft);
+    border-radius:12px; padding:24px; box-shadow:var(--shadow-sm);
+    margin-bottom:24px;
+  }
+  .admin-card h2{ font-size:18px; font-weight:700; color:var(--text-0); margin-bottom:18px; display:flex; justify-content:space-between; align-items:center;}
+  .admin-card h2 .right{ display:flex; gap:8px; }
+  .btn-sm{ display:inline-flex; align-items:center; gap:6px; padding:8px 14px; font-size:13px; font-weight:600; border-radius:6px; cursor:pointer; transition:all 0.2s;}
+  .btn-sm.primary{ background:var(--accent); color:#fff; border:1px solid var(--accent);}
+  .btn-sm.primary:hover{ background:var(--accent-2); box-shadow:0 4px 12px rgba(14,165,233,0.3);}
+  .btn-sm.ghost{ background:#fff; color:var(--text-1); border:1px solid var(--border-soft);}
+  .btn-sm.ghost:hover{ background:rgba(14,165,233,0.06); border-color:var(--accent);}
+  .btn-sm.danger{ background:#fff; color:#b91c1c; border:1px solid rgba(220,38,38,0.3);}
+  .btn-sm.danger:hover{ background:rgba(220,38,38,0.08); }
+
+  table.admin-table{ width:100%; border-collapse:collapse; font-size:14px;}
+  table.admin-table th, table.admin-table td{ padding:12px 10px; border-bottom:1px solid var(--border-soft); text-align:left;}
+  table.admin-table th{
+    background:rgba(14,165,233,0.04); font-size:11px; color:var(--accent-2);
+    font-family:'JetBrains Mono',monospace; letter-spacing:0.08em; text-transform:uppercase;
+    font-weight:600;
+  }
+  table.admin-table tbody tr:hover{ background:rgba(14,165,233,0.03); }
+  .badge{ display:inline-block; padding:3px 9px; font-size:11px; border-radius:999px; font-family:'JetBrains Mono',monospace; letter-spacing:0.05em; font-weight:600;}
+  .badge.notice{ background:rgba(14,165,233,0.08); color:var(--accent-2); border:1px solid rgba(14,165,233,0.22);}
+  .badge.news{ background:rgba(124,58,237,0.08); color:#6d28d9; border:1px solid rgba(124,58,237,0.22);}
+  .badge.event{ background:rgba(249,115,22,0.08); color:#c2410c; border:1px solid rgba(249,115,22,0.22);}
+  .badge.unread{ background:rgba(220,38,38,0.08); color:#b91c1c; border:1px solid rgba(220,38,38,0.22);}
+  .badge.read{ background:rgba(100,116,139,0.08); color:#475569; border:1px solid rgba(100,116,139,0.22);}
+
+  .panel-tabs{ display:flex; gap:6px; padding-bottom:16px; border-bottom:1px solid var(--border-soft); margin-bottom:18px;}
+  .panel-tabs button{
+    padding:8px 16px; font-size:13px; font-weight:600; border-radius:8px;
+    color:var(--text-2); cursor:pointer; transition:all 0.2s;
+  }
+  .panel-tabs button.on{ background:rgba(14,165,233,0.1); color:var(--accent-2); }
+
+  /* Composer modal */
+  .modal-overlay{
+    display:none; position:fixed; inset:0; z-index:200;
+    background:rgba(11,19,36,0.55);
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.show{ display:flex; }
+  .modal{ background:#fff; border-radius:14px; max-width:640px; width:100%; padding:28px 30px; box-shadow:var(--shadow-lg); max-height:90vh; overflow:auto;}
+  .modal h3{ font-size:18px; margin-bottom:20px; color:var(--text-0);}
+  .modal .form-field{ margin-bottom:14px;}
+  .modal .form-field input, .modal .form-field textarea, .modal .form-field select{ width:100%; padding:10px 12px; border:1px solid var(--border-soft); border-radius:6px; font-family:inherit; font-size:14px; color:var(--text-0); background:#fff; box-shadow:none;}
+  .modal .form-field textarea{ min-height:140px; resize:vertical;}
+  .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:18px;}
+
+  .empty{ padding:40px; text-align:center; color:var(--text-3); font-size:14px;}
+  .sec-warn{
+    margin-bottom:20px; padding:14px 18px;
+    background:linear-gradient(135deg, rgba(249,115,22,0.06), rgba(220,38,38,0.04));
+    border:1px solid rgba(249,115,22,0.3);
+    border-radius:10px;
+    font-size:13px; color:#7c2d12; line-height:1.6;
+  }
+  .sec-warn strong{ color:#9a3412; }
+
+  @media (max-width:1024px){
+    .admin-shell{ grid-template-columns: 1fr; }
+    .admin-aside{ position:relative; height:auto; flex-direction:row; align-items:center; padding:14px 18px;}
+    .admin-brand{ margin-bottom:0;}
+    .admin-nav{ display:none;}
+    .admin-bottom{ border:none; padding:0; margin-left:auto;}
+    .admin-stats{ grid-template-columns: 1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="admin-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-aside">
+    <div class="admin-brand">
+      <img src="../img/logo.png" alt="SM TECH">
+      <span>ADMIN</span>
+    </div>
+    <ul class="admin-nav">
+      <li><a href="#dashboard" class="active" data-tab="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        대시보드
+      </a></li>
+      <li><a href="#notices" data-tab="notices">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        공지사항
+      </a></li>
+      <li><a href="#inquiries" data-tab="inquiries">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        고객 문의
+      </a></li>
+    </ul>
+    <div class="admin-bottom">
+      <button id="logoutBtn" type="button">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        로그아웃
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+
+    <div class="admin-top">
+      <h1 id="pageTitle">대시보드</h1>
+      <div class="meta">[ <span style="color:var(--accent);">●</span> ADMIN ] <span data-clock></span></div>
+    </div>
+
+    <div class="sec-warn">
+      <strong>⚠ 보안 안내 — 이 화면은 UI 데모입니다.</strong>
+      현재 데이터는 브라우저 <code>sessionStorage / localStorage</code>에만 저장되며 다른 사용자에게 보이지 않습니다.
+      실제 공지사항·문의 처리에는 백엔드 서버(데이터베이스 + 인증 + 권한 검증 + CSRF 방어)가 필수입니다.
+    </div>
+
+    <!-- ===== DASHBOARD TAB ===== -->
+    <section data-pane="dashboard">
+      <div class="admin-stats">
+        <div class="admin-stat">
+          <div class="lbl">Total Notices</div>
+          <div class="val" id="cntNotices">0</div>
+          <div class="delta">전체 공지사항</div>
+        </div>
+        <div class="admin-stat">
+          <div class="lbl">Total Inquiries</div>
+          <div class="val" id="cntInquiries">0</div>
+          <div class="delta">전체 문의</div>
+        </div>
+        <div class="admin-stat">
+          <div class="lbl">Unread Inquiries</div>
+          <div class="val" id="cntUnread">0</div>
+          <div class="delta">미열람 문의</div>
+        </div>
+        <div class="admin-stat">
+          <div class="lbl">Today</div>
+          <div class="val" id="cntToday">0</div>
+          <div class="delta">오늘 등록 / 접수</div>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <h2>최근 공지사항 <span class="right"><a href="#notices" class="btn-sm ghost" data-jump="notices">관리 →</a></span></h2>
+        <table class="admin-table">
+          <thead><tr><th style="width:60px;">No</th><th style="width:90px;">분류</th><th>제목</th><th style="width:120px;">등록일</th></tr></thead>
+          <tbody id="recentNotices"><tr><td colspan="4" class="empty">데이터가 없습니다.</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="admin-card">
+        <h2>최근 문의 <span class="right"><a href="#inquiries" class="btn-sm ghost" data-jump="inquiries">관리 →</a></span></h2>
+        <table class="admin-table">
+          <thead><tr><th style="width:60px;">No</th><th style="width:90px;">상태</th><th>회사 / 제목</th><th style="width:140px;">접수일</th></tr></thead>
+          <tbody id="recentInquiries"><tr><td colspan="4" class="empty">데이터가 없습니다.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== NOTICES TAB ===== -->
+    <section data-pane="notices" hidden>
+      <div class="admin-card">
+        <h2>공지사항 관리
+          <span class="right">
+            <button class="btn-sm primary" id="addNoticeBtn">＋ 새 공지 작성</button>
+          </span>
+        </h2>
+        <table class="admin-table">
+          <thead><tr><th style="width:60px;">No</th><th style="width:90px;">분류</th><th>제목</th><th style="width:140px;">등록일</th><th style="width:120px;">관리</th></tr></thead>
+          <tbody id="noticeList"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== INQUIRIES TAB ===== -->
+    <section data-pane="inquiries" hidden>
+      <div class="admin-card">
+        <h2>고객 문의 관리
+          <span class="right">
+            <button class="btn-sm ghost" id="seedInquiryBtn">샘플 데이터 추가</button>
+          </span>
+        </h2>
+        <table class="admin-table">
+          <thead><tr><th style="width:60px;">No</th><th style="width:90px;">상태</th><th style="width:140px;">회사명</th><th>제목</th><th style="width:160px;">담당자 / 연락처</th><th style="width:140px;">접수일</th><th style="width:140px;">관리</th></tr></thead>
+          <tbody id="inquiryList"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- NOTICE COMPOSER MODAL -->
+<div class="modal-overlay" id="noticeModal">
+  <form class="modal" id="noticeForm" autocomplete="off">
+    <h3 id="noticeModalTitle">새 공지사항 작성</h3>
+    <div class="form-field">
+      <label style="display:block;font-size:11px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">분류</label>
+      <select id="noticeCat">
+        <option value="NOTICE">NOTICE · 공지</option>
+        <option value="NEWS">NEWS · 소식</option>
+        <option value="EVENT">EVENT · 행사</option>
+        <option value="HR">HR · 채용</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label style="display:block;font-size:11px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">제목 *</label>
+      <input type="text" id="noticeTitle" required maxlength="120">
+    </div>
+    <div class="form-field">
+      <label style="display:block;font-size:11px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;">내용</label>
+      <textarea id="noticeBody" maxlength="4000"></textarea>
+    </div>
+    <input type="hidden" id="noticeId">
+    <div class="modal-actions">
+      <button type="button" class="btn-sm ghost" id="noticeCancel">취소</button>
+      <button type="submit" class="btn-sm primary">저장</button>
+    </div>
+  </form>
+</div>
+
+<!-- INQUIRY DETAIL MODAL -->
+<div class="modal-overlay" id="inquiryModal">
+  <div class="modal">
+    <h3>문의 상세</h3>
+    <div id="inquiryDetail" style="font-size:14px; color:var(--text-1); line-height:1.7;"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-sm ghost" id="inquiryCloseBtn">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ⚠ 데모 전용 — 데이터는 localStorage에 저장됩니다.
+   실제 서비스에서는 백엔드 API 사용을 권장합니다.
+   ============================================================ */
+(function(){
+  'use strict';
+
+  // -------- Auth gate (sessionStorage) --------
+  if (sessionStorage.getItem('smtec_admin_demo') !== '1') {
+    window.location.replace('login.html');
+    return;
+  }
+
+  // -------- Data layer (localStorage) --------
+  const NK = 'smtec_notices_demo';
+  const IK = 'smtec_inquiries_demo';
+
+  function escapeHTML(s){
+    return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function safeJSON(key, fallback){
+    try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+    catch(e){ return fallback; }
+  }
+  function loadNotices(){ return safeJSON(NK, []); }
+  function saveNotices(arr){ localStorage.setItem(NK, JSON.stringify(arr)); }
+  function loadInquiries(){ return safeJSON(IK, []); }
+  function saveInquiries(arr){ localStorage.setItem(IK, JSON.stringify(arr)); }
+
+  function todayStr(d){ d = d || new Date(); const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}`; }
+
+  // -------- Seed default data on first run --------
+  if (loadNotices().length === 0) {
+    saveNotices([
+      { id: 1, cat:'NEWS', title:'AS9100 Rev.D 재인증 획득 안내', body:'에스엠테크가 AS9100 Rev.D 항공우주 품질경영 인증을 갱신했습니다.', date:'2026.04.15' },
+      { id: 2, cat:'EVENT', title:'DX KOREA 2026 방위산업 전시회 참가 안내', body:'에스엠테크가 DX KOREA 2026 전시회에 참가합니다.', date:'2026.03.22' },
+      { id: 3, cat:'HR', title:'2026년 상반기 생산기술 / R&D 경력직 채용', body:'에스엠테크 경력직 채용 공고입니다.', date:'2026.02.10' }
+    ]);
+  }
+
+  // -------- Tab navigation --------
+  const navLinks = document.querySelectorAll('.admin-nav a[data-tab]');
+  const panes = document.querySelectorAll('section[data-pane]');
+  const titles = { dashboard:'대시보드', notices:'공지사항', inquiries:'고객 문의' };
+
+  function activate(tab){
+    navLinks.forEach(a => a.classList.toggle('active', a.dataset.tab === tab));
+    panes.forEach(p => p.hidden = p.dataset.pane !== tab);
+    document.getElementById('pageTitle').textContent = titles[tab] || '대시보드';
+    if (tab === 'notices') renderNotices();
+    if (tab === 'inquiries') renderInquiries();
+    if (tab === 'dashboard') renderDashboard();
+  }
+  navLinks.forEach(a => a.addEventListener('click', e => {
+    e.preventDefault(); activate(a.dataset.tab);
+  }));
+  document.querySelectorAll('[data-jump]').forEach(b => {
+    b.addEventListener('click', e => { e.preventDefault(); activate(b.dataset.jump); });
+  });
+
+  // -------- Logout --------
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    if (confirm('로그아웃 하시겠습니까?')) {
+      sessionStorage.removeItem('smtec_admin_demo');
+      sessionStorage.removeItem('smtec_admin_at');
+      window.location.replace('login.html');
+    }
+  });
+
+  // -------- Dashboard render --------
+  function renderDashboard(){
+    const notices = loadNotices();
+    const inquiries = loadInquiries();
+    document.getElementById('cntNotices').textContent = notices.length;
+    document.getElementById('cntInquiries').textContent = inquiries.length;
+    document.getElementById('cntUnread').textContent = inquiries.filter(i => !i.read).length;
+
+    const today = todayStr();
+    const todayCount = notices.filter(n => n.date === today).length + inquiries.filter(i => i.date === today).length;
+    document.getElementById('cntToday').textContent = todayCount;
+
+    // Recent
+    const rn = document.getElementById('recentNotices');
+    if (notices.length === 0) {
+      rn.innerHTML = '<tr><td colspan="4" class="empty">데이터가 없습니다.</td></tr>';
+    } else {
+      rn.innerHTML = notices.slice(-5).reverse().map(n =>
+        `<tr><td>${n.id}</td><td><span class="badge ${n.cat==='NEWS'?'news':n.cat==='EVENT'?'event':'notice'}">${escapeHTML(n.cat)}</span></td><td>${escapeHTML(n.title)}</td><td>${escapeHTML(n.date)}</td></tr>`
+      ).join('');
+    }
+    const ri = document.getElementById('recentInquiries');
+    if (inquiries.length === 0) {
+      ri.innerHTML = '<tr><td colspan="4" class="empty">데이터가 없습니다.</td></tr>';
+    } else {
+      ri.innerHTML = inquiries.slice(-5).reverse().map(q =>
+        `<tr><td>${q.id}</td><td><span class="badge ${q.read?'read':'unread'}">${q.read?'READ':'NEW'}</span></td><td><b>${escapeHTML(q.company||'-')}</b> · ${escapeHTML(q.subject||'')}</td><td>${escapeHTML(q.date)}</td></tr>`
+      ).join('');
+    }
+  }
+
+  // -------- Notice management --------
+  const noticeList = document.getElementById('noticeList');
+  const noticeModal = document.getElementById('noticeModal');
+  const noticeForm = document.getElementById('noticeForm');
+
+  function renderNotices(){
+    const list = loadNotices();
+    if (list.length === 0) {
+      noticeList.innerHTML = '<tr><td colspan="5" class="empty">등록된 공지가 없습니다.</td></tr>';
+      return;
+    }
+    noticeList.innerHTML = [...list].reverse().map(n =>
+      `<tr>
+         <td>${n.id}</td>
+         <td><span class="badge ${n.cat==='NEWS'?'news':n.cat==='EVENT'?'event':'notice'}">${escapeHTML(n.cat)}</span></td>
+         <td>${escapeHTML(n.title)}</td>
+         <td>${escapeHTML(n.date)}</td>
+         <td>
+           <button class="btn-sm ghost" data-edit="${n.id}">수정</button>
+           <button class="btn-sm danger" data-del="${n.id}">삭제</button>
+         </td>
+       </tr>`
+    ).join('');
+  }
+
+  document.getElementById('addNoticeBtn').addEventListener('click', () => openNoticeModal());
+
+  noticeList.addEventListener('click', e => {
+    const ed = e.target.closest('[data-edit]');
+    const dl = e.target.closest('[data-del]');
+    if (ed) {
+      const id = +ed.dataset.edit;
+      const n = loadNotices().find(x=>x.id===id);
+      if (n) openNoticeModal(n);
+    } else if (dl) {
+      const id = +dl.dataset.del;
+      if (confirm('이 공지를 삭제하시겠습니까?')) {
+        saveNotices(loadNotices().filter(x=>x.id!==id));
+        renderNotices();
+      }
+    }
+  });
+
+  function openNoticeModal(notice){
+    document.getElementById('noticeModalTitle').textContent = notice ? '공지사항 수정' : '새 공지사항 작성';
+    document.getElementById('noticeId').value = notice ? notice.id : '';
+    document.getElementById('noticeCat').value = notice ? notice.cat : 'NOTICE';
+    document.getElementById('noticeTitle').value = notice ? notice.title : '';
+    document.getElementById('noticeBody').value = notice ? (notice.body||'') : '';
+    noticeModal.classList.add('show');
+  }
+  function closeNoticeModal(){ noticeModal.classList.remove('show'); noticeForm.reset(); }
+
+  document.getElementById('noticeCancel').addEventListener('click', closeNoticeModal);
+  noticeModal.addEventListener('click', e => { if (e.target === noticeModal) closeNoticeModal(); });
+
+  noticeForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const id = document.getElementById('noticeId').value;
+    const cat = document.getElementById('noticeCat').value;
+    const title = document.getElementById('noticeTitle').value.trim();
+    const body = document.getElementById('noticeBody').value.trim();
+    if (!title) return;
+
+    const list = loadNotices();
+    if (id) {
+      const idx = list.findIndex(x=>x.id===+id);
+      if (idx >= 0) list[idx] = { ...list[idx], cat, title, body };
+    } else {
+      const nextId = list.length ? Math.max(...list.map(x=>x.id)) + 1 : 1;
+      list.push({ id: nextId, cat, title, body, date: todayStr() });
+    }
+    saveNotices(list);
+    closeNoticeModal();
+    renderNotices();
+  });
+
+  // -------- Inquiry management --------
+  const inquiryList = document.getElementById('inquiryList');
+  const inquiryModal = document.getElementById('inquiryModal');
+
+  function renderInquiries(){
+    const list = loadInquiries();
+    if (list.length === 0) {
+      inquiryList.innerHTML = '<tr><td colspan="7" class="empty">접수된 문의가 없습니다. 우측 상단 버튼으로 샘플 데이터를 추가할 수 있습니다.</td></tr>';
+      return;
+    }
+    inquiryList.innerHTML = [...list].reverse().map(q =>
+      `<tr>
+         <td>${q.id}</td>
+         <td><span class="badge ${q.read?'read':'unread'}">${q.read?'READ':'NEW'}</span></td>
+         <td>${escapeHTML(q.company||'-')}</td>
+         <td>${escapeHTML(q.subject||'(제목 없음)')}</td>
+         <td>${escapeHTML(q.name||'-')}<br><span style="font-size:12px;color:var(--text-3);">${escapeHTML(q.email||q.phone||'')}</span></td>
+         <td>${escapeHTML(q.date)}</td>
+         <td>
+           <button class="btn-sm ghost" data-view="${q.id}">보기</button>
+           <button class="btn-sm danger" data-rm="${q.id}">삭제</button>
+         </td>
+       </tr>`
+    ).join('');
+  }
+
+  inquiryList.addEventListener('click', e => {
+    const v = e.target.closest('[data-view]');
+    const r = e.target.closest('[data-rm]');
+    if (v) {
+      const id = +v.dataset.view;
+      const list = loadInquiries();
+      const q = list.find(x=>x.id===id);
+      if (!q) return;
+      // mark as read
+      q.read = true;
+      saveInquiries(list);
+      renderInquiries();
+
+      document.getElementById('inquiryDetail').innerHTML = `
+        <div style="display:grid;grid-template-columns:120px 1fr;gap:8px 14px;font-size:13px;">
+          <span style="color:var(--text-3);">회사</span><span>${escapeHTML(q.company||'-')}</span>
+          <span style="color:var(--text-3);">담당자</span><span>${escapeHTML(q.name||'-')}</span>
+          <span style="color:var(--text-3);">E-MAIL</span><span>${escapeHTML(q.email||'-')}</span>
+          <span style="color:var(--text-3);">TEL</span><span>${escapeHTML(q.phone||'-')}</span>
+          <span style="color:var(--text-3);">유형</span><span>${escapeHTML(q.type||'-')}</span>
+          <span style="color:var(--text-3);">제목</span><span><b>${escapeHTML(q.subject||'-')}</b></span>
+          <span style="color:var(--text-3);">접수일</span><span>${escapeHTML(q.date)}</span>
+        </div>
+        <div style="margin-top:18px;padding-top:18px;border-top:1px dashed var(--border-soft);white-space:pre-wrap;">${escapeHTML(q.message||'')}</div>
+      `;
+      inquiryModal.classList.add('show');
+    } else if (r) {
+      const id = +r.dataset.rm;
+      if (confirm('이 문의를 삭제하시겠습니까?')) {
+        saveInquiries(loadInquiries().filter(x=>x.id!==id));
+        renderInquiries();
+      }
+    }
+  });
+  document.getElementById('inquiryCloseBtn').addEventListener('click', () => inquiryModal.classList.remove('show'));
+  inquiryModal.addEventListener('click', e => { if (e.target === inquiryModal) inquiryModal.classList.remove('show'); });
+
+  document.getElementById('seedInquiryBtn').addEventListener('click', () => {
+    const list = loadInquiries();
+    const nextId = list.length ? Math.max(...list.map(x=>x.id)) + 1 : 1;
+    list.push({
+      id: nextId,
+      company: '샘플 회사 ' + nextId,
+      name: '담당자' + nextId,
+      email: 'demo'+nextId+'@example.com',
+      phone: '010-0000-0000',
+      type: '일반 문의',
+      subject: '5축 가공 부품 견적 문의 #' + nextId,
+      message: '샘플 문의 내용입니다. 실제 운영에서는 inquiry.html 폼이 백엔드 API로 전송된 데이터가 여기 표시됩니다.',
+      date: todayStr(),
+      read: false
+    });
+    saveInquiries(list);
+    renderInquiries();
+  });
+
+  // -------- Live clock --------
+  const clock = document.querySelector('[data-clock]');
+  if (clock) {
+    const fmt = () => {
+      const d = new Date(); const p=n=>String(n).padStart(2,'0');
+      return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+    };
+    clock.textContent = fmt();
+    setInterval(()=>clock.textContent = fmt(), 1000);
+  }
+
+  // initial
+  activate('dashboard');
+})();
+</script>
+</body>
+</html>

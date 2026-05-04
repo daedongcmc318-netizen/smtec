@@ -1,0 +1,12 @@
+# 기본자료 (300MB+, 원본 소스 파일 — 배포 불필요)
+기본자료/
+기본자료
+.claude/
+.DS_Store
+Thumbs.db
+node_modules/
+*.log
+*.zip
+.env
+.env.local
+.env.*.local

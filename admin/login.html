@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>관리자 로그인 | SM TECH</title>
+<link rel="icon" href="../img/logo.png">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+  body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:24px; }
+  .login-card{
+    width:100%; max-width:420px;
+    background:#ffffff; border:1px solid var(--border-soft);
+    border-radius:16px; padding:48px 40px;
+    box-shadow:var(--shadow-lg);
+    position:relative; z-index:1;
+  }
+  .login-logo{ display:flex; align-items:center; justify-content:center; margin-bottom:24px;}
+  .login-logo img{ height:46px; }
+  .login-title{ text-align:center; font-family:'Rajdhani',sans-serif; font-size:24px; font-weight:700; color:var(--text-0); margin-bottom:6px; letter-spacing:-0.005em;}
+  .login-sub{ text-align:center; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-3); margin-bottom:32px; letter-spacing:0.1em; text-transform:uppercase;}
+  .login-form .form-field{ margin-bottom:18px; }
+  .login-form .form-field input{ box-shadow:none; }
+  .login-form .btn-primary{ width:100%; justify-content:center; padding:15px; margin-top:8px;}
+  .login-warn{
+    margin-top:24px; padding:14px 16px;
+    background:rgba(249,115,22,0.06);
+    border:1px solid rgba(249,115,22,0.25);
+    border-radius:8px;
+    font-size:12px; color:#7c2d12; line-height:1.55;
+  }
+  .login-warn strong{ color:#9a3412; display:block; margin-bottom:4px;}
+  .err{ display:none; color:#b91c1c; font-size:13px; margin-top:6px; padding:8px 12px; background:rgba(220,38,38,0.08); border:1px solid rgba(220,38,38,0.25); border-radius:6px; }
+  .err.show{ display:block; }
+  .login-back{ display:block; text-align:center; margin-top:18px; font-size:12px; color:var(--text-3); }
+  .login-back:hover{ color:var(--accent-2); }
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="glow-orb"></div>
+
+<form class="login-card" id="loginForm" autocomplete="off">
+  <div class="login-logo">
+    <img src="../img/logo.png" alt="SM TECH">
+  </div>
+  <div class="login-title">Admin Login</div>
+  <div class="login-sub">관리자 로그인</div>
+
+  <div class="login-form">
+    <div class="form-field">
+      <label>아이디 (ID)</label>
+      <input type="text" id="userId" name="userId" required autocomplete="username" maxlength="40">
+    </div>
+    <div class="form-field">
+      <label>비밀번호 (PASSWORD)</label>
+      <input type="password" id="userPw" name="userPw" required autocomplete="current-password" maxlength="80">
+    </div>
+    <div class="err" id="errMsg"></div>
+    <button type="submit" class="btn btn-primary">
+      로그인 <span class="arrow">→</span>
+    </button>
+  </div>
+
+  <div class="login-warn">
+    <strong>⚠ 보안 안내</strong>
+    이 로그인은 <b>UI 데모용</b>입니다. 클라이언트 측 인증은 안전하지 않으므로 실제 운영 시 반드시 서버 측 인증(HTTPS · 비밀번호 해싱 · 세션 쿠키 · CSRF 토큰 등)을 도입해 주세요.
+  </div>
+  <a href="../index.html" class="login-back">← 홈페이지로 돌아가기</a>
+</form>
+
+<script>
+/* ============================================================
+   ⚠ 보안 경고 (READ ME)
+   ------------------------------------------------------------
+   이 파일은 UI 데모입니다. 실제 운영에서는 절대 이 방식으로
+   인증을 구현하지 마세요. 클라이언트 JS의 비밀번호는 누구나
+   소스를 열어 볼 수 있으므로 의미 없는 보호입니다.
+
+   실제 보안을 위해 필요한 사항:
+   1. 백엔드 서버 (Node.js · Python · PHP 등)
+   2. 비밀번호 해시 저장 (bcrypt / argon2)
+   3. HTTPS 전용 + Secure / HttpOnly 세션 쿠키
+   4. CSRF 토큰 / SameSite=Strict 쿠키
+   5. Rate-limiting (무차별 대입 차단)
+   6. 2FA / OTP (선택)
+   ============================================================ */
+(function () {
+  // ★ 실제 운영 코드에서는 사용 금지. 데모 전용.
+  //    아이디 / 비밀번호는 임의로 변경 가능하지만 어차피 안전하지 않음.
+  const DEMO_USER = 'admin';
+  const DEMO_PASS = 'smtec2026';   // ← UI 데모용 임시 자격증명
+
+  const form = document.getElementById('loginForm');
+  const errBox = document.getElementById('errMsg');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    errBox.classList.remove('show');
+
+    const id = document.getElementById('userId').value.trim();
+    const pw = document.getElementById('userPw').value;
+
+    if (!id || !pw) {
+      errBox.textContent = '아이디와 비밀번호를 모두 입력해 주세요.';
+      errBox.classList.add('show');
+      return;
+    }
+
+    if (id === DEMO_USER && pw === DEMO_PASS) {
+      // sessionStorage: 탭이 닫히면 초기화 — localStorage 보다 안전
+      sessionStorage.setItem('smtec_admin_demo', '1');
+      sessionStorage.setItem('smtec_admin_at', String(Date.now()));
+      window.location.href = 'dashboard.html';
+    } else {
+      errBox.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
+      errBox.classList.add('show');
+    }
+  });
+})();
+</script>
+</body>
+</html>
