@@ -2,6 +2,45 @@
 (function () {
   'use strict';
 
+  // Nav: toggle .scrolled class once user scrolls past hero area (~60px)
+  const nav = document.querySelector('.nav');
+  if (nav) {
+    const updateNav = () => {
+      nav.classList.toggle('scrolled', window.scrollY > 60);
+    };
+    updateNav();
+    window.addEventListener('scroll', updateNav, { passive: true });
+  }
+
+  // Hero slider — 3 slides, auto-rotate every 5s, with prev/next + dots
+  const heroSlider = document.getElementById('heroSlider');
+  if (heroSlider) {
+    const slides = heroSlider.querySelectorAll('.hero-slide');
+    const dots = heroSlider.querySelectorAll('.hero-dots button');
+    const prevBtn = heroSlider.querySelector('.hero-arrow.prev');
+    const nextBtn = heroSlider.querySelector('.hero-arrow.next');
+    let idx = 0;
+    let timer = null;
+
+    const goTo = (n) => {
+      idx = (n + slides.length) % slides.length;
+      slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    };
+    const next = () => goTo(idx + 1);
+    const prev = () => goTo(idx - 1);
+    const start = () => { stop(); timer = setInterval(next, 5000); };
+    const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
+
+    nextBtn && nextBtn.addEventListener('click', () => { next(); start(); });
+    prevBtn && prevBtn.addEventListener('click', () => { prev(); start(); });
+    dots.forEach((d, i) => d.addEventListener('click', () => { goTo(i); start(); }));
+    heroSlider.addEventListener('mouseenter', stop);
+    heroSlider.addEventListener('mouseleave', start);
+
+    start();
+  }
+
   // Mobile nav toggle (lock body scroll when open)
   const toggle = document.querySelector('.nav-toggle');
   const menu = document.querySelector('.nav-menu');
