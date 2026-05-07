@@ -1493,8 +1493,8 @@ p { margin: 0 0 1em; }
   background: #ffffff;
   border: 1px solid var(--border-soft);
   border-radius: 18px;
-  padding: 48px 44px;
-  margin-bottom: 36px;
+  padding: 56px 48px;
+  margin-bottom: 72px;
   box-shadow: var(--shadow-sm);
   transition: all 0.35s var(--ease);
 }
