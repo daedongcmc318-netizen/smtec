@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notice | SM TECH</title>
+<link rel="icon" href="../img/logo.png">
+<link rel="stylesheet" href="../css/style.css?v=20260507">
+<style>
+  .board-toolbar{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:18px;}
+  .board-search{position:relative; flex:1; min-width:240px; max-width:380px;}
+  .board-search input{width:100%; padding:11px 14px 11px 38px; border:1px solid var(--border-soft); border-radius:8px; background:#fff; font-size:14px; color:var(--text-1);}
+  .board-search input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(14,165,233,0.12);}
+  .board-search svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; color:var(--text-3);}
+  .board-filter{display:flex; gap:6px; flex-wrap:wrap;}
+  .board-filter button{padding:8px 14px; font-size:12px; font-weight:600; border:1px solid var(--border-soft); border-radius:999px; background:#fff; color:var(--text-2); font-family:'JetBrains Mono',monospace; letter-spacing:0.06em; cursor:pointer; transition:all .2s var(--ease);}
+  .board-filter button:hover{border-color:var(--accent); color:var(--accent-2);}
+  .board-filter button.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .notice-table td.title-cell{cursor:pointer;}
+  .notice-table td.title-cell .t-link{color:var(--text-1); font-weight:500;}
+  .notice-table tbody tr:hover .t-link{color:var(--accent-2);}
+  .notice-table .empty-cell{padding:60px 20px !important; text-align:center; color:var(--text-3);}
+  .pager{display:flex; justify-content:center; gap:6px; margin-top:36px;}
+  .pager button{min-width:40px; padding:9px 13px; font-size:13px; font-weight:600; border:1px solid var(--border-soft); border-radius:6px; background:#fff; color:var(--text-1); cursor:pointer;}
+  .pager button.on{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .pager button:disabled{opacity:0.4; cursor:not-allowed;}
+  .nt-overlay{display:none; position:fixed; inset:0; z-index:200; background:rgba(11,19,36,0.6); align-items:center; justify-content:center; padding:20px;}
+  .nt-overlay.show{display:flex;}
+  .nt-modal{background:#fff; border-radius:14px; max-width:680px; width:100%; max-height:88vh; overflow:auto;}
+  .nt-head{padding:24px 28px 18px; border-bottom:1px solid var(--border-soft);}
+  .nt-meta{display:flex; gap:10px; align-items:center; font-size:12px; color:var(--text-3); margin-bottom:10px;}
+  .nt-head h2{font-size:20px; font-weight:700;}
+  .nt-body{padding:26px 28px 28px; font-size:15px; line-height:1.8; white-space:pre-wrap;}
+  .nt-foot{padding:14px 28px 22px; display:flex; justify-content:space-between; gap:10px; align-items:center;}
+  .nt-close{padding:8px 16px; font-size:13px; font-weight:600; background:var(--accent); color:#fff; border-radius:6px; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="logo"><img src="../img/logo.png" alt="SM TECH"><span class="logo-text">SM TECH</span></a>
+    <nav><ul class="nav-menu">
+      <li class="nav-item has-sub"><a class="nav-link" href="greeting.html">Company</a><ul class="submenu"><li><a href="greeting.html">CEO Message</a></li><li><a href="philosophy.html">Philosophy &amp; Goals</a></li><li><a href="history.html">History</a></li><li><a href="certifications.html">Certifications</a></li><li><a href="organization.html">Organization</a></li><li><a href="location.html">Location</a></li></ul></li>
+      <li class="nav-item has-sub"><a class="nav-link" href="business.html">Business</a><ul class="submenu"><li><a href="business.html">Overview</a></li><li><a href="clients.html">Major Clients</a></li></ul></li>
+      <li class="nav-item has-sub"><a class="nav-link" href="defense.html">Products</a><ul class="submenu"><li><a href="defense.html">Defense</a></li><li><a href="aerospace.html">Aviation / Others</a></li><li><a href="satellite.html">Satellite</a></li></ul></li>
+      <li class="nav-item has-sub"><a class="nav-link" href="equipment.html">Facility</a><ul class="submenu"><li><a href="equipment.html">Equipment</a></li><li><a href="instruments.html">Instruments</a></li></ul></li>
+      <li class="nav-item"><a class="nav-link" href="process.html">Process</a></li>
+      <li class="nav-item has-sub"><a class="nav-link" href="notices.html">Support</a><ul class="submenu"><li><a href="notices.html">Notice</a></li><li><a href="inquiry.html">Inquiry</a></li></ul></li>
+    </ul></nav>
+    <a href="inquiry.html" class="nav-cta">Contact →</a>
+    <a href="../pages/notices.html" class="lang-toggle" aria-label="한국어">한국어</a>
+    <button class="nav-toggle" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  </div>
+</header>
+
+<section class="page-hero" style="--page-hero-bg: url('../img/company/sub_ima.png');">
+  <div class="page-hero-inner">
+    <div class="crumb"><a href="index.html">HOME</a> &nbsp;/&nbsp; Support &nbsp;/&nbsp; <span class="text-accent">Notice</span></div>
+    <h1>Customer Support</h1>
+  </div>
+</section>
+
+<nav class="sub-nav">
+  <div class="sub-nav-inner">
+    <a href="notices.html" class="active">Notice</a>
+    <a href="inquiry.html">Inquiry</a>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <div class="board-toolbar">
+      <div class="board-filter" id="boardFilter">
+        <button data-cat="ALL" class="on">ALL</button>
+        <button data-cat="NOTICE">NOTICE</button>
+        <button data-cat="NEWS">NEWS</button>
+        <button data-cat="EVENT">EVENT</button>
+        <button data-cat="HR">HR</button>
+      </div>
+      <div class="board-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="boardSearch" placeholder="Search by title…" autocomplete="off">
+      </div>
+    </div>
+
+    <table class="notice-table">
+      <thead>
+        <tr><th style="width:80px;">No.</th><th style="width:130px;">CATEGORY</th><th>TITLE</th><th style="width:140px;">DATE</th><th style="width:100px;">VIEW</th></tr>
+      </thead>
+      <tbody id="boardBody"></tbody>
+    </table>
+
+    <div class="pager" id="boardPager"></div>
+  </div>
+</section>
+
+<div class="nt-overlay" id="ntOverlay" role="dialog" aria-modal="true" aria-labelledby="ntTitle">
+  <div class="nt-modal">
+    <div class="nt-head">
+      <div class="nt-meta"><span id="ntNo"></span><span class="cat" id="ntCat"></span><span id="ntDate"></span></div>
+      <h2 id="ntTitle"></h2>
+    </div>
+    <div class="nt-body" id="ntBody"></div>
+    <div class="nt-foot">
+      <div><button id="ntPrev" type="button">‹ Prev</button> <button id="ntNext" type="button">Next ›</button></div>
+      <button class="nt-close" id="ntClose" type="button">Close</button>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><img src="../img/logo.png" alt="SM TECH" class="footer-logo"><p style="color:#9aa3ab;font-size:13px;line-height:1.7;">SM TECH Co., Ltd.<br>51 Murim 4-gil, Yakmok-myeon,<br>Chilgok-gun, Gyeongsangbuk-do, Korea</p></div>
+    <div><h5>Company</h5><p><a href="greeting.html">CEO Message</a></p><p><a href="philosophy.html">Philosophy &amp; Goals</a></p><p><a href="history.html">History</a></p><p><a href="certifications.html">Certifications</a></p></div>
+    <div><h5>Products / Facility</h5><p><a href="defense.html">Defense</a></p><p><a href="aerospace.html">Aviation / Others</a></p><p><a href="satellite.html">Satellite</a></p><p><a href="equipment.html">Equipment</a></p></div>
+    <div><h5>Customer Support</h5><p>T. +82-54-977-9113~4</p><p>F. +82-54-977-9115</p><p>E. smtec@smtec.or.kr</p><p><a href="inquiry.html">Inquiry</a></p></div>
+  </div>
+  <div class="footer-bottom"><span>© <span data-year></span> SM TECH Co., Ltd. ALL RIGHTS RESERVED.</span><a href="../admin/login.html" class="admin-link">Admin</a></div>
+</footer>
+
+<script src="../js/main.js"></script>
+<script type="module">
+import { db } from '../js/firebase.js';
+import { collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
+
+const VK = 'smtec_notices_views';
+const PER_PAGE = 10;
+const tbody = document.getElementById('boardBody');
+const pager = document.getElementById('boardPager');
+
+function escapeHTML(s){return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function loadViews(){try{return JSON.parse(localStorage.getItem(VK))||{};}catch(e){return {};}}
+function saveViews(v){localStorage.setItem(VK, JSON.stringify(v));}
+function tsToDateStr(ts){try{const d=ts&&ts.toDate?ts.toDate():(ts?new Date(ts):null);if(!d)return'';const p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())}`;}catch(e){return '';}}
+
+let allNotices=[];
+let state={cat:'ALL',q:'',page:1,detailId:null};
+
+async function loadFromFirestore(){
+  const snap=await getDocs(query(collection(db,'notices'),orderBy('createdAt','desc')));
+  allNotices=snap.docs.map((d,i)=>({id:d.id,seq:snap.docs.length-i,...d.data()}));
+}
+function filteredList(){return allNotices.filter(n=>{if(state.cat!=='ALL'&&n.cat!==state.cat)return false;if(state.q&&!String(n.title||'').toLowerCase().includes(state.q.toLowerCase()))return false;return true;});}
+function render(){
+  const list=filteredList();const views=loadViews();
+  if(list.length===0){tbody.innerHTML=`<tr><td colspan="5" class="empty-cell"><div>${state.q||state.cat!=='ALL'?'No results found.':'No notices yet.'}</div></td></tr>`;pager.innerHTML='';return;}
+  const totalPages=Math.max(1,Math.ceil(list.length/PER_PAGE));
+  if(state.page>totalPages)state.page=totalPages;
+  const start=(state.page-1)*PER_PAGE;const slice=list.slice(start,start+PER_PAGE);
+  tbody.innerHTML=slice.map(n=>{const no=String(n.seq).padStart(3,'0');const v=views[n.id]||0;return `<tr><td>${no}</td><td><span class="cat">${escapeHTML(n.cat||'NOTICE')}</span></td><td class="title-cell" data-id="${n.id}"><span class="t-link">${escapeHTML(n.title||'')}</span></td><td>${escapeHTML(n.date||tsToDateStr(n.createdAt))}</td><td>${v.toLocaleString()}</td></tr>`;}).join('');
+  let pHTML=`<button data-pg="prev" ${state.page===1?'disabled':''}>‹</button>`;const win=5;let from=Math.max(1,state.page-Math.floor(win/2));let to=Math.min(totalPages,from+win-1);from=Math.max(1,to-win+1);for(let i=from;i<=to;i++){pHTML+=`<button data-pg="${i}" class="${i===state.page?'on':''}">${i}</button>`;}pHTML+=`<button data-pg="next" ${state.page===totalPages?'disabled':''}>›</button>`;pager.innerHTML=pHTML;
+}
+
+const overlay=document.getElementById('ntOverlay');const ntNo=document.getElementById('ntNo');const ntCat=document.getElementById('ntCat');const ntDate=document.getElementById('ntDate');const ntTitle=document.getElementById('ntTitle');const ntBody=document.getElementById('ntBody');
+function openDetail(id){const list=filteredList();const idx=list.findIndex(n=>n.id===id);if(idx<0)return;const n=list[idx];const views=loadViews();views[n.id]=(views[n.id]||0)+1;saveViews(views);state.detailId=id;ntNo.textContent='#'+String(n.seq).padStart(3,'0');ntCat.textContent=n.cat||'NOTICE';ntDate.textContent=n.date||tsToDateStr(n.createdAt)||'';ntTitle.textContent=n.title||'';ntBody.textContent=n.body||'No content.';overlay.classList.add('show');document.body.style.overflow='hidden';}
+function closeDetail(){overlay.classList.remove('show');document.body.style.overflow='';state.detailId=null;render();}
+
+tbody.addEventListener('click',e=>{const cell=e.target.closest('.title-cell');if(cell)openDetail(cell.dataset.id);});
+pager.addEventListener('click',e=>{const b=e.target.closest('button[data-pg]');if(!b||b.disabled)return;const v=b.dataset.pg;const totalPages=Math.max(1,Math.ceil(filteredList().length/PER_PAGE));if(v==='prev')state.page=Math.max(1,state.page-1);else if(v==='next')state.page=Math.min(totalPages,state.page+1);else state.page=+v;render();window.scrollTo({top:document.querySelector('.notice-table').offsetTop-80,behavior:'smooth'});});
+document.getElementById('boardFilter').addEventListener('click',e=>{const b=e.target.closest('button[data-cat]');if(!b)return;document.querySelectorAll('#boardFilter button').forEach(x=>x.classList.toggle('on',x===b));state.cat=b.dataset.cat;state.page=1;render();});
+let searchTimer=null;document.getElementById('boardSearch').addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{state.q=document.getElementById('boardSearch').value.trim();state.page=1;render();},200);});
+document.getElementById('ntClose').addEventListener('click',closeDetail);overlay.addEventListener('click',e=>{if(e.target===overlay)closeDetail();});
+document.addEventListener('keydown',e=>{if(!overlay.classList.contains('show'))return;if(e.key==='Escape')closeDetail();});
+
+tbody.innerHTML=`<tr><td colspan="5" class="empty-cell"><div>Loading…</div></td></tr>`;
+try{await loadFromFirestore();render();}catch(err){tbody.innerHTML=`<tr><td colspan="5" class="empty-cell"><div>Failed to load notices.</div></td></tr>`;}
+</script>
+</body>
+</html>

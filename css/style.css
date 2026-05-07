@@ -167,6 +167,41 @@ p { margin: 0 0 1em; }
 .submenu li a:hover { background: var(--bg-soft); color: var(--accent); }
 
 .nav-cta { display: none !important; }
+
+/* Language toggle button (KO ↔ EN) */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.55);
+  border-radius: 999px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.35);
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  margin-left: 12px;
+}
+.lang-toggle:hover {
+  background: rgba(255,255,255,0.95);
+  color: #2c5fb5;
+  border-color: rgba(255,255,255,0.95);
+  text-shadow: none;
+}
+.nav.scrolled .lang-toggle {
+  color: var(--text-1);
+  background: transparent;
+  border-color: var(--line-strong);
+  text-shadow: none;
+}
+.nav.scrolled .lang-toggle:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
 .nav-cta-disabled {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 18px;

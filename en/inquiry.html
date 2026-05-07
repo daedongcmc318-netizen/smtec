@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inquiry | SM TECH</title>
+<link rel="icon" href="../img/logo.png">
+<link rel="stylesheet" href="../css/style.css?v=20260507">
+</head>
+<body>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="logo"><img src="../img/logo.png" alt="SM TECH"><span class="logo-text">SM TECH</span></a>
+    <nav><ul class="nav-menu">
+      <li class="nav-item has-sub"><a class="nav-link" href="greeting.html">Company</a><ul class="submenu"><li><a href="greeting.html">CEO Message</a></li><li><a href="philosophy.html">Philosophy &amp; Goals</a></li><li><a href="history.html">History</a></li><li><a href="certifications.html">Certifications</a></li><li><a href="organization.html">Organization</a></li><li><a href="location.html">Location</a></li></ul></li>
+      <li class="nav-item has-sub"><a class="nav-link" href="business.html">Business</a><ul class="submenu"><li><a href="business.html">Overview</a></li><li><a href="clients.html">Major Clients</a></li></ul></li>
+      <li class="nav-item has-sub"><a class="nav-link" href="defense.html">Products</a><ul class="submenu"><li><a href="defense.html">Defense</a></li><li><a href="aerospace.html">Aviation / Others</a></li><li><a href="satellite.html">Satellite</a></li></ul></li>
+      <li class="nav-item has-sub"><a class="nav-link" href="equipment.html">Facility</a><ul class="submenu"><li><a href="equipment.html">Equipment</a></li><li><a href="instruments.html">Instruments</a></li></ul></li>
+      <li class="nav-item"><a class="nav-link" href="process.html">Process</a></li>
+      <li class="nav-item has-sub"><a class="nav-link" href="notices.html">Support</a><ul class="submenu"><li><a href="notices.html">Notice</a></li><li><a href="inquiry.html">Inquiry</a></li></ul></li>
+    </ul></nav>
+    <a href="inquiry.html" class="nav-cta">Contact →</a>
+    <a href="../pages/inquiry.html" class="lang-toggle" aria-label="한국어">한국어</a>
+    <button class="nav-toggle" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  </div>
+</header>
+
+<section class="page-hero" style="--page-hero-bg: url('../img/company/sub_ima.png');">
+  <div class="page-hero-inner">
+    <div class="crumb"><a href="index.html">HOME</a> &nbsp;/&nbsp; Support &nbsp;/&nbsp; <span class="text-accent">Inquiry</span></div>
+    <h1>Customer Support</h1>
+  </div>
+</section>
+
+<nav class="sub-nav">
+  <div class="sub-nav-inner">
+    <a href="notices.html">Notice</a>
+    <a href="inquiry.html" class="active">Inquiry</a>
+  </div>
+</nav>
+
+<section class="section">
+  <div class="container">
+    <div class="two-col">
+      <form class="reveal" id="inquiryForm" autocomplete="off">
+        <div class="form-grid">
+          <div class="form-field"><label>Company <span style="color:var(--accent);">*</span></label><input type="text" name="company" required maxlength="80" placeholder="ACME Defense Co."></div>
+          <div class="form-field"><label>Contact Name <span style="color:var(--accent);">*</span></label><input type="text" name="name" required maxlength="40" placeholder="John Smith"></div>
+          <div class="form-field"><label>E-MAIL <span style="color:var(--accent);">*</span></label><input type="email" name="email" required maxlength="120" placeholder="contact@company.com"></div>
+          <div class="form-field"><label>TEL</label><input type="tel" name="phone" maxlength="30" placeholder="+82-10-0000-0000"></div>
+          <div class="form-field full"><label>Inquiry Type</label>
+            <select name="type">
+              <option>General Inquiry</option>
+              <option>Defense Parts Quote (NDA Required)</option>
+              <option>Aviation / Aerospace Parts Quote</option>
+              <option>Satellite / MGSE Inquiry</option>
+              <option>Visit Reservation</option>
+              <option>Recruitment / Other</option>
+            </select>
+          </div>
+          <div class="form-field full"><label>Subject <span style="color:var(--accent);">*</span></label><input type="text" name="subject" required maxlength="120" placeholder="e.g., 5-Axis Machined Part Quote Request"></div>
+          <div class="form-field full"><label>Message <span style="color:var(--accent);">*</span></label><textarea name="message" required maxlength="3500" placeholder="Please share specifications, quantities, and lead time requirements."></textarea></div>
+          <div class="form-field full" style="display:flex;align-items:center;gap:12px;">
+            <input type="checkbox" id="agree" required style="width:18px;height:18px;accent-color:var(--accent);">
+            <label for="agree" style="font-family:inherit;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text-2);">I agree to the collection and use of my personal information. (Used only for responding to inquiries.)</label>
+          </div>
+          <div class="form-field full" id="formStatus" style="display:none;"></div>
+          <div class="form-field full"><button type="submit" class="btn btn-primary" id="submitBtn" style="width:100%; justify-content:center; padding:18px;">Send Inquiry <span class="arrow">→</span></button></div>
+        </div>
+      </form>
+
+      <div class="reveal">
+        <div class="info-panel">
+          <div class="row"><span class="k">TEL</span><span class="v">+82-54-977-9113~4</span></div>
+          <div class="row"><span class="k">FAX</span><span class="v">+82-54-977-9115</span></div>
+          <div class="row"><span class="k">E-MAIL</span><span class="v">smtec@smtec.or.kr</span></div>
+          <div class="row"><span class="k">HOURS</span><span class="v">Mon-Fri 09:00 — 18:00</span></div>
+          <div class="row"><span class="k">RESPONSE</span><span class="v text-accent">● Within 24H</span></div>
+        </div>
+        <div class="feature-card mt-32"><div class="num">NDA / Confidential</div><h3 style="font-size:18px;">Defense Drawings</h3><p>Defense-grade parts require NDA agreements before discussion. Please contact us by email first.</p></div>
+        <div class="feature-card mt-16"><div class="num">Site Visit</div><h3 style="font-size:18px;">Factory Tour</h3><p>Due to security regulations, factory visits require advance reservation at least 3 business days in advance.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><img src="../img/logo.png" alt="SM TECH" class="footer-logo"><p style="color:#9aa3ab;font-size:13px;line-height:1.7;">SM TECH Co., Ltd.<br>51 Murim 4-gil, Yakmok-myeon,<br>Chilgok-gun, Gyeongsangbuk-do, Korea</p></div>
+    <div><h5>Company</h5><p><a href="greeting.html">CEO Message</a></p><p><a href="philosophy.html">Philosophy &amp; Goals</a></p><p><a href="history.html">History</a></p><p><a href="certifications.html">Certifications</a></p></div>
+    <div><h5>Products / Facility</h5><p><a href="defense.html">Defense</a></p><p><a href="aerospace.html">Aviation / Others</a></p><p><a href="satellite.html">Satellite</a></p><p><a href="equipment.html">Equipment</a></p></div>
+    <div><h5>Customer Support</h5><p>T. +82-54-977-9113~4</p><p>F. +82-54-977-9115</p><p>E. smtec@smtec.or.kr</p><p><a href="inquiry.html">Inquiry</a></p></div>
+  </div>
+  <div class="footer-bottom"><span>© <span data-year></span> SM TECH Co., Ltd. ALL RIGHTS RESERVED.</span><a href="../admin/login.html" class="admin-link">Admin</a></div>
+</footer>
+
+<script src="../js/main.js"></script>
+<script type="module">
+import { db } from '../js/firebase.js';
+import { collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
+
+const form = document.getElementById('inquiryForm');
+const status = document.getElementById('formStatus');
+const submitBtn = document.getElementById('submitBtn');
+
+function showStatus(msg, kind){
+  status.textContent = msg; status.style.display = 'block';
+  status.style.padding = '12px 16px'; status.style.borderRadius = '8px'; status.style.fontSize = '14px';
+  if (kind === 'ok') { status.style.background = 'rgba(14,165,233,0.08)'; status.style.color = 'var(--accent-2)'; status.style.border = '1px solid rgba(14,165,233,0.25)'; }
+  else { status.style.background = 'rgba(220,38,38,0.06)'; status.style.color = '#b91c1c'; status.style.border = '1px solid rgba(220,38,38,0.25)'; }
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault(); status.style.display = 'none';
+  const fd = new FormData(form);
+  const payload = { company: String(fd.get('company')||'').trim(), name: String(fd.get('name')||'').trim(), email: String(fd.get('email')||'').trim(), phone: String(fd.get('phone')||'').trim(), type: String(fd.get('type')||'').trim(), subject: String(fd.get('subject')||'').trim(), message: String(fd.get('message')||'').trim(), read: false, createdAt: serverTimestamp() };
+  if (!payload.company || !payload.name || !payload.email || !payload.subject || !payload.message) { showStatus('Please fill in all required fields.', 'err'); return; }
+  if (payload.message.length >= 4000) { showStatus('Message must be under 4000 characters.', 'err'); return; }
+  submitBtn.disabled = true; const orig = submitBtn.innerHTML; submitBtn.innerHTML = 'Sending...';
+  try { await addDoc(collection(db, 'inquiries'), payload); showStatus('Your inquiry has been received. We will respond within 24 business hours.', 'ok'); form.reset(); window.scrollTo({ top: status.offsetTop - 120, behavior:'smooth' }); }
+  catch (err) { showStatus('Failed to send. Please try again later or email smtec@smtec.or.kr directly.', 'err'); }
+  finally { submitBtn.disabled = false; submitBtn.innerHTML = orig; }
+});
+</script>
+</body>
+</html>
