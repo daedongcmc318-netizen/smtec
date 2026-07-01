@@ -2077,6 +2077,23 @@ p { margin: 0 0 1em; }
 .aero-imgs.dual .aero-main-img { flex: 1.4; }
 .aero-imgs.dual .aero-sub-img { flex: 1; aspect-ratio: 4/3; background-size: cover; background-color: var(--bg-soft); border-radius: 6px; }
 
+/* 두 이미지 같은 높이로 정렬 (무인기/위성 지상장비) */
+.aero-imgs.dual.equal { align-items: center; justify-content: center; gap: 20px; }
+.aero-imgs.dual.equal .aero-main-img {
+  flex: 0 0 auto; width: auto; height: 210px; min-height: 0; aspect-ratio: 360 / 169;
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+  background-color: transparent; border-radius: 6px;
+}
+.aero-imgs.dual.equal .aero-sub-img {
+  flex: 0 0 auto; width: auto; height: 210px; min-height: 0; aspect-ratio: 910 / 816;
+  background-size: contain; background-repeat: no-repeat; background-position: center;
+  background-color: transparent; border-radius: 6px;
+}
+@media (max-width: 600px) {
+  .aero-imgs.dual.equal .aero-main-img,
+  .aero-imgs.dual.equal .aero-sub-img { width: 100%; height: auto; }
+}
+
 .aero-text h3 {
   color: #2c5fb5;
   font-size: 22px;
